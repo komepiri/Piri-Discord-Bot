@@ -86,13 +86,13 @@ async function generateWithGitHubModels(channelId, modelName, text) {
       description: "AIが常に返答するチャンネルを設定します。",
       options: [
         {
-          type: 7, // チャンネルタイプ
+          type: 7, 
           name: "channel",
           description: "設定するチャンネル",
           required: true
         },
         {
-          type: 3, // 文字列タイプ
+          type: 3, 
           name: "model",
           description: "使用するモデルを選択",
           required: true,
@@ -214,7 +214,7 @@ function saveMessage(channelId, role, content, models) {
   let conversation = [];
   
   // システムメッセージを追加
-  const systemMessage = { role: "system", content: `You are a Bot AI running on Discord, named KomeServer Bot (<@1275786474805002341>). The language model is ${models}. You will be sent a message in the format of “name:content”, so please respond to the content.` };
+  const systemMessage = { role: "system", content: `You are a Bot AI running on Discord, named Piri Bot (<@1275786474805002341>). The language model is ${models}. You will be sent a message in the format of “name:content”, so please respond to the content.` };
 
   if (fs.existsSync(channelFilePath)) {
       conversation = JSON.parse(fs.readFileSync(channelFilePath));
@@ -325,7 +325,7 @@ client.on('messageCreate', async (message) => {
         const attachment = message.attachments.first();
 
         // ファイルをダウンロードして保存
-        const response = await fetch(attachment.url); // ネイティブfetchを使用
+        const response = await fetch(attachment.url); 
         const buffer = await response.arrayBuffer();
         fs.writeFileSync(encryptedFilePath, Buffer.from(buffer));
 
@@ -443,7 +443,7 @@ client.on("interactionCreate", async (interaction) => {
     if (!interaction.isCommand()) return;
   
     if (interaction.commandName === 'gem') {
-      const userMessage = interaction.options.getString('text'); // スラッシュコマンドのオプションを取得
+      const userMessage = interaction.options.getString('text'); 
   
       try {
         const text = await generate(userMessage);
@@ -523,7 +523,7 @@ client.on("interactionCreate", async (interaction) => {
           return;
       }
 
-        const newStatusMessage = interaction.options.getString('message'); // スラッシュコマンドのオプションを取得
+        const newStatusMessage = interaction.options.getString('message');
         StatusMessages = newStatusMessage;
         client.user.setActivity({ 
           name: `${StatusMessages} | ${client.ws.ping}ms`,
@@ -539,7 +539,7 @@ client.on("interactionCreate", async (interaction) => {
         return;
     }
 
-      const status = interaction.options.getString('status'); // スラッシュコマンドのオプションを取得
+      const status = interaction.options.getString('status'); 
 
       try {
           switch (status) {
