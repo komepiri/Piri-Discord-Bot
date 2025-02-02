@@ -148,6 +148,10 @@ async function generateWithGitHubModels(channelId, modelName, text) {
       description: "BotのAIの状態を確認します。",
     },
     {
+      name: "conv_exp",
+      description: "今までの会話内容を出力します。",
+    },
+    {
       name: "setpresence",
       description: "Botのオンライン状況を変更します。",
       options: [{
@@ -553,6 +557,29 @@ client.on("interactionCreate", async (interaction) => {
       }
       await interaction.reply({ embeds: [embed] });
     }
+
+    if (interaction.commandName === 'conv_exp') {
+      const channels = loadChannels();
+      if (channels.channels[interaction.guild.id]) {
+        // 会話内容をjsonでそのままファイルとして(システムメッセージを除く)送信
+        const targetChannel = channels.channels[interaction.guild.id].channelId;
+        const channelMessages = loadMessage(targetChannel);
+        const messages = channelMessages.filter(msg => msg.role !== 'system');
+        const messagesText = messages.map(msg => `${msg.role}: ${msg.content}`).join('\n');
+        const messagesFilePath = path.join(__dirname, 'messages.txt');
+        fs.writeFileSync(messagesFilePath, JSON.stringify(messages, null, 2));
+        await interaction.reply({
+            files: [{
+                attachment: messagesFilePath,
+                name: 'messages.txt'
+            }]
+        });
+        fs.unlinkSync(messagesFilePath);
+    } else {
+        await interaction.reply('このチャンネルには自動応答が有効化されていません。');
+        console.log(`channel ${interaction.guild.id} not found.`);
+    }
+  }
       
       if (interaction.commandName === 'setstatus') {
         // 管理者権限をチェック
