@@ -546,7 +546,10 @@ client.on("interactionCreate", async (interaction) => {
                   name: '現在までの総会話数',
                   value: currentChannelMessages.length - 1
               }
-          ]
+          ],
+          footer: {
+            text: "GitHub Repo:https://github.com/komepiri/Piri-Discord-Bot"
+          }
       }
       await interaction.reply({ embeds: [embed] });
     }
