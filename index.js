@@ -144,6 +144,10 @@ async function generateWithGitHubModels(channelId, modelName, text) {
       }],
     },
     {
+      name: "ai_status",
+      description: "BotのAIの状態を確認します。",
+    },
+    {
       name: "setpresence",
       description: "Botのオンライン状況を変更します。",
       options: [{
@@ -514,6 +518,37 @@ client.on("interactionCreate", async (interaction) => {
             await interaction.reply('このチャンネルには自動応答が有効化されていません。');
             console.log(`channel ${interaction.guild.id} not found.`);
         }
+    }
+
+    if (interaction.commandName === 'ai_status') {
+      const channels = loadChannels();
+      const targetChannel = channels.channels[interaction.guild.id];
+      let model = '未設定';
+      let currentChannelMessages = [];
+      if (targetChannel) {
+          model = targetChannel.model;
+          currentChannelMessages = loadMessage(targetChannel.channelId);
+      }
+      const embed = {
+          title: '自動応答の状態',
+          description: `自動応答チャンネル: ${targetChannel ? `<#${targetChannel.channelId}>` : '未設定'}`,
+          color: 0x00ff00,
+          fields: [
+              {
+                  name: '言語モデル',
+                  value: model
+              },
+              {
+                  name: '自動応答の状態',
+                  value: targetChannel ? '有効' : '無効'
+              },
+              {
+                  name: '現在までの総会話数',
+                  value: currentChannelMessages.length - 1
+              }
+          ]
+      }
+      await interaction.reply({ embeds: [embed] });
     }
       
       if (interaction.commandName === 'setstatus') {
