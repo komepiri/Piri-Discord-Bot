@@ -533,6 +533,10 @@ client.on("interactionCreate", async (interaction) => {
           model = targetChannel.model;
           currentChannelMessages = loadMessage(targetChannel.channelId);
       }
+      let currentChannelMessagesLength = currentChannelMessages.length - 1;
+      if (currentChannelMessagesLength < 0) {
+          currentChannelMessagesLength = 0;
+      }
       const embed = {
           title: '自動応答の状態',
           description: `自動応答チャンネル: ${targetChannel ? `<#${targetChannel.channelId}>` : '未設定'}`,
@@ -547,8 +551,8 @@ client.on("interactionCreate", async (interaction) => {
                   value: targetChannel ? '有効' : '無効'
               },
               {
-                  name: '現在までの総会話数',
-                  value: currentChannelMessages.length - 1
+                  name: '現在までの総会話数(AIからの返答を含む)',
+                  value: currentChannelMessagesLength
               }
           ],
           footer: {
