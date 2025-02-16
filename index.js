@@ -649,7 +649,7 @@ client.on("interactionCreate", async (interaction) => {
   }
 
   if (interaction.commandName === 'sysinfo') {
-    exec('python3 /home/hyperv/デスクトップ/a/discordbot/Komepiri-Server-Bot/monitor.py', (error, stdout, stderr) => {
+    exec(`python3 ${__dirname}/monitor.py`, (error, stdout, stderr) => {
       if (error) {
         console.error(`exec error: ${error}`);
         return interaction.reply('システム情報の取得に失敗しました。');
