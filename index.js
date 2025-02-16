@@ -1,5 +1,5 @@
 import { Client, GatewayIntentBits, PresenceUpdateStatus, ActivityType } from "discord.js";
-import exec from 'child_process';
+import { exec }from 'child_process';
 import ModelClient from "@azure-rest/ai-inference";
 import { AzureKeyCredential } from "@azure/core-auth";
 import fs from 'fs';
