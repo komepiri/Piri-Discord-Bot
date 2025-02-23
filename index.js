@@ -6,6 +6,7 @@ import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
 import { fileURLToPath } from "url";
+import * as deepl from 'deepl-node';
 
 dotenv.config();
 
@@ -22,6 +23,9 @@ const __dirname = path.dirname(__filename);
 
 const githubToken = process.env["GITHUB_TOKEN"];
 const endpoint = "https://models.inference.ai.azure.com";
+
+const authKey = process.env["DEEPL_TOKEN"] // Replace with your key
+const translator = new deepl.Translator(authKey);
 
 // デフォルトステータスメッセージ
 let StatusMessages = "PiriBot";
@@ -193,6 +197,22 @@ async function generateWithGitHubModels(channelId, modelName, text) {
         description: "暗号化のパスワード",
         required: true
       }],
+    },
+    {
+      name: "translator",
+      description: "指定した言語",
+      options: [{
+        type: 3,
+        name: "text",
+        description: "翻訳する文章",
+        required: true
+      },
+      {
+        type: 3,
+        name: "lang",
+        description: "翻訳する言語",
+        required: true
+      }]
     }]
     await client.application.commands.set(data);
   });
@@ -671,6 +691,20 @@ if (interaction.commandName === 'dcry') {
             console.error(`File download error: ${err}`);
             interaction.reply(`Error:${err}`);
         });
-}})
+}
+if (interaction.commandName === 'translator') {
+  const text = interaction.options.getString('text');
+  const lang = interaction.options.getString('lang');
+
+  try {
+      const result = await translator.translateText(text, null, lang);
+      await interaction.reply('翻訳した内容:\n```' + `${result.text}` + '```');
+  } catch (err) {
+      console.error(`Translation error: ${err.message}`);
+      await interaction.reply(`Error: ${err.message}`);
+  }
+}
+
+})
 
 client.login(process.env.TOKEN);
