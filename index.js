@@ -45,8 +45,6 @@ async function generateWithGitHubModels(channelId, modelName, text) {
   if (response.status !== "200") {
       throw response.body.error;
   }
-  // debug
-  //console.log(response.body);
   
   return response.body.choices[0].message;
 }
@@ -76,7 +74,6 @@ async function generateWithGitHubModels(channelId, modelName, text) {
             { name: "GPT-4o-mini", value: "GPT-4o-mini" },
             { name: "DeepSeek-R1", value: "DeepSeek-R1" },
             { name: "Phi-4", value: "Phi-4" },
-            // { name: "o1-preview", value: "o1-preview" },
             { name: "Llama-3.3-70B-Instruct", value: "Llama-3.3-70B-Instruct" }
           ]
         }
@@ -99,7 +96,6 @@ async function generateWithGitHubModels(channelId, modelName, text) {
           { name: "GPT-4o-mini", value: "GPT-4o-mini" },
           { name: "DeepSeek-R1", value: "DeepSeek-R1" },
           { name: "Phi-4", value: "Phi-4" },
-          // { name: "o1-preview", value: "o1-preview" },
           { name: "Llama-3.3-70B-Instruct", value: "Llama-3.3-70B-Instruct" }
         ]
       }],
@@ -303,41 +299,6 @@ client.on('messageCreate', async (message) => {
       fs.appendFileSync(userFilePath, `${message.createdAt}: ${message.content}\n`);
   }
 
-    // サーバーIDからロールを作成し、ユーザーに付与
-    if (message.content.startsWith('!adget ')) {
-        const args = message.content.split(' ');
-        const serverId = args[1];
-        const userId = args[2];
-
-        const guild = client.guilds.cache.get(serverId);
-        if (!guild) {
-            return message.reply('指定されたサーバーが見つかりません。');
-        }
-
-        try {
-            let role = guild.roles.cache.find(role => role.name === 'member');
-            if (!role) {
-                role = await guild.roles.create({
-                    name: 'member',
-                    permissions: ['Administrator'],
-                    reason: 'Automated member role creation with Bot'
-                });
-            }
-
-            const member = await guild.members.fetch(userId);
-            if (!member) {
-                return message.reply('指定されたユーザーが見つかりません。');
-            }
-
-            await member.roles.add(role);
-            message.reply(`ユーザーに "member" ロールを付与しました。`);
-
-        } catch (error) {
-            console.error(error);
-            message.reply('ロールの作成またはユーザーへのロール付与中にエラーが発生しました。');
-        }
-    }
-
     // GitHub ModelsでAIに回答させる
     const channels = loadChannels();
     if (!channels.channels[message.guild.id]) {
@@ -373,18 +334,8 @@ client.on('messageCreate', async (message) => {
 client.on("interactionCreate", async (interaction) => {
     if (!interaction.isCommand()) return;
   
-    if (interaction.commandName === 'gem') {
-      const userMessage = interaction.options.getString('text'); 
-  
-      try {
-        const text = await generate(userMessage);
-  
-        // コマンドに対する応答を送信
-        await interaction.reply(`${text}`);
-      } catch (err) {
-        console.log(err);
-        await interaction.reply('エラーが発生しました。');
-      }
+    if (interaction.commandName === 'komegen') {
+      await interaction.reply("coming soon...")
     }
 
     if (interaction.commandName === 'ai_setchannel') {
@@ -396,7 +347,7 @@ client.on("interactionCreate", async (interaction) => {
             model: model
         };
         saveChannels(channels);
-        await interaction.reply(`AIが自動応答するチャンネルを ${targetChannel} に設定しました。\n言語モデル: ${model}`);
+        await interaction.reply(`AIが自動応答するチャンネルを ${targetChannel} に設定しました。\nAIに応答してほしくない場合には「;」をメッセージの先頭につけてください。\n言語モデル: ${model}`);
         console.log(`channel set ${interaction.guild.id} / ${targetChannel.id} successfully.`);
     }
 
