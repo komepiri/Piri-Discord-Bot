@@ -481,7 +481,7 @@ client.on("interactionCreate", async (interaction) => {
       
       if (interaction.commandName === 'setstatus') {
         // 管理者権限をチェック
-        if (interaction.user.id !== '980235139902750730') {
+        if (interaction.user.id !== process.env["ADMIN_USRID"]) {
           await interaction.reply('このコマンドを使用する権限がありません。');
           return;
       }
@@ -497,7 +497,7 @@ client.on("interactionCreate", async (interaction) => {
 
     if (interaction.commandName === 'setpresence') {
       // 管理者権限をチェック
-      if (interaction.user.id !== '980235139902750730') {
+      if (interaction.user.id !== process.env["ADMIN_USRID"]) {
         await interaction.reply('このコマンドを使用する権限がありません。');
         return;
     }
@@ -596,7 +596,7 @@ client.on("interactionCreate", async (interaction) => {
 
   if (interaction.commandName === 'admincmd') {
     // ユーザーIDで管理者をチェック
-    if (interaction.user.id !== '980235139902750730') {
+    if (interaction.user.id !== process.env["ADMIN_USRID"]) {
         await interaction.reply('このコマンドを使用する権限がありません。');
         return;
     }
