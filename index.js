@@ -7,7 +7,6 @@ import path from 'path';
 import dotenv from 'dotenv';
 import { fileURLToPath } from "url";
 
-import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 dotenv.config();
 
 const client = new Client({
@@ -24,26 +23,8 @@ const __dirname = path.dirname(__filename);
 const githubToken = process.env["GITHUB_TOKEN"];
 const endpoint = "https://models.inference.ai.azure.com";
 
-
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
-
 // デフォルトステータスメッセージ
 let StatusMessages = "PiriBot";
-
-// 生成
-async function generate(text) {
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-  
-    const chat = model.startChat({
-      generationConfig: {
-        maxOutputTokens: 100,
-      },
-    });
-  
-    const result = await chat.sendMessage(text);
-    const response = result.response;
-    return response.text(); // 直接text()を返すように修正
-  }
 
   // GitHub Modelsを使ってGPT-4oに回答させる関数
 async function generateWithGitHubModels(channelId, modelName, text) {
@@ -72,17 +53,11 @@ async function generateWithGitHubModels(channelId, modelName, text) {
 
   client.once('ready', async () => {
     const data = [{
-      name: "gem",
-      description: "Gemini APIを使って文章を生成します。",
-      options: [{
-        type: 3,
-        name: "text",
-        description: "AIに送る文",
-        required: true
-      }],
+      name: "komegen",
+      description: "こめぴりが言ってそうなことを生成します。"
     },
     {
-      name: "setchannel",
+      name: "ai_setchannel",
       description: "AIが常に返答するチャンネルを設定します。",
       options: [
         {
@@ -108,11 +83,11 @@ async function generateWithGitHubModels(channelId, modelName, text) {
       ]
     },
     {
-      name: "delchannel",
+      name: "ai_delchannel",
       description: "自動応答のチャンネル設定を削除します。",
     },
     {
-      name: "model_change",
+      name: "ai_model_change",
       description: "AIの使用する言語モデルを変更します。",
       options: [{
         type: 3,
@@ -130,7 +105,7 @@ async function generateWithGitHubModels(channelId, modelName, text) {
       }],
     },
     {
-      name: "conv_reset",
+      name: "ai_conv_reset",
       description: "会話内容をリセットします。",
     },
     {
@@ -148,7 +123,7 @@ async function generateWithGitHubModels(channelId, modelName, text) {
       description: "BotのAIの状態を確認します。",
     },
     {
-      name: "conv_exp",
+      name: "ai_conv_exp",
       description: "今までの会話内容を出力します。",
     },
     {
@@ -190,7 +165,39 @@ async function generateWithGitHubModels(channelId, modelName, text) {
     {
       name:"admincmd",
       description:"Bot管理者専用コマンド", 
-    }];
+    },
+    {
+      name: "encry",
+      description: "文字列を暗号化しbase64エンコードして返します。",
+      options: [{
+        type: 3,
+        name: "text",
+        description: "暗号化する文字列",
+        required: true
+      },
+      {
+        type: 3,
+        name: "password",
+        description: "暗号化のパスワード",
+        required: true
+      }],
+    },
+    {
+      name: "dcry",
+      description: "暗号化された文字列を復号化します。",
+      options: [{
+        type: 11,
+        name: "file",
+        description: "暗号化時に発行されたファイル",
+        required: true
+      },
+      {
+        type: 3,
+        name: "password",
+        description: "暗号化のパスワード",
+        required: true
+      }],
+    }]
     await client.application.commands.set(data);
   });
 
@@ -286,8 +293,6 @@ const encryptedFilePath = path.join(__dirname, 'encrypted_temp.txt');
 // 復号化後のファイルの保存先
 const decryptedFilePath = path.join(__dirname, 'decrypted.txt');
 
-// OpenSSLで使用する暗号化キー
-const encryptionKey = 'Komepiri';
 
 client.on('messageCreate', async (message) => {
     if (message.author.bot) return;
@@ -297,88 +302,6 @@ client.on('messageCreate', async (message) => {
       const userFilePath = path.join(userMessageDir, `${message.author.id}.txt`);
       fs.appendFileSync(userFilePath, `${message.createdAt}: ${message.content}\n`);
   }
-
-    // 暗号化処理
-    if (message.content.startsWith('!encry ')) {
-        const stringToEncrypt = message.content.slice(7); // '!encry ' の部分を除く
-
-        const command = `echo -n "${stringToEncrypt}" | openssl enc -aes-256-cbc -salt -pbkdf2 -base64 -out ${encryptedFilePath} -k ${encryptionKey}`;
-
-        exec(command, (error, stdout, stderr) => {
-            if (error) {
-                console.error(`Error: ${error.message}`);
-                return message.reply('エラーが発生しました。');
-            }
-            if (stderr) {
-                console.error(`stderr: ${stderr}`);
-                return message.reply('エラーが発生しました。');
-            }
-
-            message.channel.send({
-                files: [{
-                    attachment: encryptedFilePath,
-                    name: 'encrypted.txt'
-                }]
-            }).then(() => {
-                fs.unlinkSync(encryptedFilePath);
-            }).catch(err => {
-                console.error(`File send error: ${err}`);
-            });
-        });
-    }
-
-    // 復号化処理（添付ファイルと直接入力の両方に対応）
-    if (message.content.startsWith('!dcry')) {
-      if (message.attachments.size > 0) {
-        const attachment = message.attachments.first();
-
-        // ファイルをダウンロードして保存
-        const response = await fetch(attachment.url); 
-        const buffer = await response.arrayBuffer();
-        fs.writeFileSync(encryptedFilePath, Buffer.from(buffer));
-
-        const command = `openssl enc -aes-256-cbc -d -pbkdf2 -base64 -in ${encryptedFilePath} -out ${decryptedFilePath} -k ${encryptionKey}`;
-
-        exec(command, (error, stdout, stderr) => {
-            if (error) {
-                console.error(`Error: ${error.message}`);
-                return message.reply('エラーが発生しました。');
-            }
-            if (stderr) {
-                console.error(`stderr: ${stderr}`);
-                return message.reply('エラーが発生しました。');
-            }
-
-            const decryptedContent = fs.readFileSync(decryptedFilePath, 'utf8');
-            message.reply(`復号化された内容:\n\`\`\`${decryptedContent}\`\`\``);
-
-            // 復号化されたファイルを削除
-            fs.unlinkSync(encryptedFilePath);
-            fs.unlinkSync(decryptedFilePath);
-        });
-        } else {
-            const encryptedText = message.content.slice(6); // '!dcry ' の部分を除く
-
-            const command = `echo -n "\n${encryptedText}" | openssl enc -aes-256-cbc -d -pbkdf2 -base64 -out ${decryptedFilePath} -k ${encryptionKey}`;
-
-            exec(command, (error, stdout, stderr) => {
-                if (error) {
-                    console.error(`Error: ${error.message}`);
-                    return message.reply('エラーが発生しました。');
-                }
-                if (stderr) {
-                    console.error(`stderr: ${stderr}`);
-                    return message.reply('エラーが発生しました。');
-                }
-
-                const decryptedContent = fs.readFileSync(decryptedFilePath, 'utf8');
-                message.reply(`復号化された内容:\n\`\`\`${decryptedContent}\`\`\``);
-
-                // 復号化されたファイルを削除
-                fs.unlinkSync(decryptedFilePath);
-            });
-        }
-    }
 
     // サーバーIDからロールを作成し、ユーザーに付与
     if (message.content.startsWith('!adget ')) {
@@ -464,7 +387,7 @@ client.on("interactionCreate", async (interaction) => {
       }
     }
 
-    if (interaction.commandName === 'setchannel') {
+    if (interaction.commandName === 'ai_setchannel') {
         const targetChannel = interaction.options.getChannel('channel');
         const model = interaction.options.getString('model');
         const channels = loadChannels();
@@ -477,7 +400,7 @@ client.on("interactionCreate", async (interaction) => {
         console.log(`channel set ${interaction.guild.id} / ${targetChannel.id} successfully.`);
     }
 
-    if (interaction.commandName === 'delchannel') {
+    if (interaction.commandName === 'ai_delchannel') {
       const channels = loadChannels();
       if (channels.channels[interaction.guild.id]) {
           const targetChannel = channels.channels[interaction.guild.id].channelId;
@@ -491,7 +414,7 @@ client.on("interactionCreate", async (interaction) => {
       }
   }
 
-    if (interaction.commandName === 'model_change') {
+    if (interaction.commandName === 'ai_model_change') {
         const model = interaction.options.getString('model');
         const channels = loadChannels();
         if (channels.channels[interaction.guild.id]) {
@@ -505,7 +428,7 @@ client.on("interactionCreate", async (interaction) => {
         }
     }
 
-    if (interaction.commandName === 'conv_reset') {
+    if (interaction.commandName === 'ai_conv_reset') {
         const channels = loadChannels();
         if (channels.channels[interaction.guild.id]) {
             const targetChannel = channels.channels[interaction.guild.id].channelId;
@@ -562,7 +485,7 @@ client.on("interactionCreate", async (interaction) => {
       await interaction.reply({ embeds: [embed] });
     }
 
-    if (interaction.commandName === 'conv_exp') {
+    if (interaction.commandName === 'ai_conv_exp') {
       const channels = loadChannels();
       if (channels.channels[interaction.guild.id]) {
         // 会話内容をjsonでそのままファイルとして(システムメッセージを除く)送信
@@ -732,8 +655,71 @@ client.on("interactionCreate", async (interaction) => {
     }
     await interaction.reply({ embeds: [embed] });
   }
-});
 
+  if (interaction.commandName === 'encry') {
+    const text = interaction.options.getString('text');
+    const password = interaction.options.getString('password');
+
+    const command = `echo -n "${text}" | openssl enc -aes-256-cbc -salt -pbkdf2 -base64 -out ${encryptedFilePath} -k ${password}`;
+
+    exec(command, (error, stdout, stderr) => {
+        if (error) {
+            console.error(`Error: ${error.message}`);
+            return interaction.reply(`Error:${error.message}`);
+        }
+        if (stderr) {
+            console.error(`stderr: ${stderr}`);
+            return interaction.reply(`Error:${stderr}`);
+        }
+
+        interaction.reply({
+            files: [{
+                attachment: encryptedFilePath,
+                name: 'encrypted.txt'
+            }]
+        }).then(() => {
+            fs.unlinkSync(encryptedFilePath);
+        }).catch(err => {
+            console.error(`File send error: ${err}`);
+        });
+    });
+  }
+
+if (interaction.commandName === 'dcry') {
+    const attachment = interaction.options.getAttachment('file');
+    const attachmentURL = attachment.url;
+    const password = interaction.options.getString('password');
+
+    // ファイルをダウンロードして保存
+    fetch(attachmentURL)
+        .then(response => response.arrayBuffer())
+        .then(buffer => {
+            fs.writeFileSync(encryptedFilePath, Buffer.from(buffer));
+
+            const command = `openssl enc -aes-256-cbc -d -pbkdf2 -base64 -in ${encryptedFilePath} -out ${decryptedFilePath} -k ${password}`;
+
+            exec(command, (error, stdout, stderr) => {
+                if (error) {
+                    console.error(`Error: ${error.message}`);
+                    return interaction.reply(`パスワードが間違っているか、エラーが発生しました。`);
+                }
+                if (stderr) {
+                    console.error(`stderr: ${stderr}`);
+                    return interaction.reply(`Error:${stderr}`);
+                }
+
+                const decryptedContent = fs.readFileSync(decryptedFilePath, 'utf8');
+                interaction.reply(`復号化された内容:\n\`\`\`${decryptedContent}\`\`\``);
+
+                // 復号化されたファイルを削除
+                fs.unlinkSync(encryptedFilePath);
+                fs.unlinkSync(decryptedFilePath);
+            });
+        })
+        .catch(err => {
+            console.error(`File download error: ${err}`);
+            interaction.reply(`Error:${err}`);
+        });
+}})
 
 client.login(process.env.TOKEN);
-
