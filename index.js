@@ -39,7 +39,7 @@ app.get('/status', (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
+  console.log(`API Server listening on http://localhost:${port}/status`)
 })
 
 const __filename = fileURLToPath(import.meta.url);
