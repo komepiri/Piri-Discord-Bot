@@ -7,6 +7,9 @@ import path from 'path';
 import dotenv from 'dotenv';
 import { fileURLToPath } from "url";
 import * as deepl from 'deepl-node';
+import express from 'express';
+const app = express();
+const port = 3000
 
 dotenv.config();
 
@@ -17,6 +20,27 @@ const client = new Client({
     GatewayIntentBits.MessageContent
   ]
 });
+
+// uptime kuma用
+app.get('/', (req, res) => {
+  res.send('Hoge')
+})
+
+app.get('/status', (req, res) => {
+  res.json({
+      bot: client.user ? client.user.tag : "Bot未接続",
+      botId: client.user.id,
+      uptime: process.uptime(),
+      ping: client.ws.ping,
+      instserv: client.guilds.cache.size,
+      totalmem: client.guilds.cache.reduce((sum, guild) => sum + guild.memberCount, 0)
+
+  });
+});
+
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`)
+})
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -621,6 +645,10 @@ client.on("interactionCreate", async (interaction) => {
             {
                 name: 'Ping',
                 value: `${ping}ms`
+            },
+            {
+                name: 'Uptime kuma IP',
+                value: `http://127.0.0.1`
             }
         ]
     }
