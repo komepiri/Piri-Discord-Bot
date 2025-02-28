@@ -648,7 +648,7 @@ client.on("interactionCreate", async (interaction) => {
             },
             {
                 name: 'Uptime kuma IP',
-                value: `http://127.0.0.1`
+                value: `http://127.0.0.1:3001`
             }
         ]
     }
