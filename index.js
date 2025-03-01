@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits, PresenceUpdateStatus, ActivityType } from "discord.js";
+import { Client, GatewayIntentBits, PresenceUpdateStatus, ActivityType, MessageFlags } from "discord.js";
 import { exec }from 'child_process';
 import ModelClient from "@azure-rest/ai-inference";
 import { AzureKeyCredential } from "@azure/core-auth";
@@ -48,7 +48,7 @@ const __dirname = path.dirname(__filename);
 const githubToken = process.env["GITHUB_TOKEN"];
 const endpoint = "https://models.inference.ai.azure.com";
 
-const authKey = process.env["DEEPL_TOKEN"] // Replace with your key
+const authKey = process.env["DEEPL_TOKEN"]
 const translator = new deepl.Translator(authKey);
 
 // デフォルトステータスメッセージ
@@ -379,7 +379,10 @@ client.on("interactionCreate", async (interaction) => {
     if (!interaction.isCommand()) return;
   
     if (interaction.commandName === 'komegen') {
-      await interaction.reply("coming soon...")
+      await interaction.reply({
+        content: 'coming soon...',
+        flags: MessageFlags.Ephemeral
+    });
     }
 
     if (interaction.commandName === 'ai_setchannel') {
