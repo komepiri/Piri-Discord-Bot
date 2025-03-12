@@ -102,8 +102,7 @@ async function generateWithGitHubModelsAndOllama(channelId, modelName, text) {
   }
   
   return response.body.choices[0].message;
-}
-}
+}}}
 
   client.once('ready', async () => {
     const data = [{
