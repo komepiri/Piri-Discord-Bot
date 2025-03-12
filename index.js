@@ -63,7 +63,7 @@ async function generateWithGitHubModelsAndOllama(channelId, modelName, text) {
 
     let conversation = loadMessage(channelId);
     const response = await ollama.chat({
-      model: 'hf.co/SakanaAI/TinySwallow-1.5B-Instruct-GGUF:Q8_0',
+      model: 'hf.co/SakanaAI/TinySwallow-1.5B-Instruct-GGUF',
       messages: conversation
   });
 
