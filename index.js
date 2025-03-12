@@ -8,6 +8,7 @@ import dotenv from 'dotenv';
 import { fileURLToPath } from "url";
 import * as deepl from 'deepl-node';
 import express from 'express';
+import { Ollama } from 'ollama';
 const app = express();
 const port = 3000
 
@@ -23,7 +24,7 @@ const client = new Client({
 
 // uptime kuma用
 app.get('/', (req, res) => {
-  res.send('Hoge')
+  res.send('Sorry, this is not the API, the API is /status.')
 })
 
 app.get('/status', (req, res) => {
@@ -54,8 +55,21 @@ const translator = new deepl.Translator(authKey);
 // デフォルトステータスメッセージ
 let StatusMessages = "PiriBot";
 
-  // GitHub Modelsを使ってGPT-4oに回答させる関数
-async function generateWithGitHubModels(channelId, modelName, text) {
+  //
+async function generateWithGitHubModelsAndOllama(channelId, modelName, text) {
+  
+  if (modelName === "TinySwallow-1.5B-Instruct") {
+    const ollama = new Ollama();
+
+    let conversation = loadMessage(channelId);
+    const response = await ollama.chat({
+      model: 'hf.co/SakanaAI/TinySwallow-1.5B-Instruct-GGUF:Q8_0',
+      messages: conversation
+  });
+
+  return response.message;
+} else {
+
   const client = new ModelClient(endpoint, new AzureKeyCredential(githubToken));
   let conversation = loadMessage(channelId);
 
@@ -75,6 +89,7 @@ async function generateWithGitHubModels(channelId, modelName, text) {
   }
   
   return response.body.choices[0].message;
+}
 }
 
   client.once('ready', async () => {
@@ -102,7 +117,8 @@ async function generateWithGitHubModels(channelId, modelName, text) {
             { name: "GPT-4o-mini", value: "GPT-4o-mini" },
             { name: "DeepSeek-R1", value: "DeepSeek-R1" },
             { name: "Phi-4", value: "Phi-4" },
-            { name: "Llama-3.3-70B-Instruct", value: "Llama-3.3-70B-Instruct" }
+            { name: "Llama-3.3-70B-Instruct", value: "Llama-3.3-70B-Instruct" },
+            { name: "TinySwallow-1.5B-Instruct", value: "TinySwallow-1.5B-Instruct"}
           ]
         }
       ]
@@ -124,7 +140,8 @@ async function generateWithGitHubModels(channelId, modelName, text) {
           { name: "GPT-4o-mini", value: "GPT-4o-mini" },
           { name: "DeepSeek-R1", value: "DeepSeek-R1" },
           { name: "Phi-4", value: "Phi-4" },
-          { name: "Llama-3.3-70B-Instruct", value: "Llama-3.3-70B-Instruct" }
+          { name: "Llama-3.3-70B-Instruct", value: "Llama-3.3-70B-Instruct" },
+          { name: "TinySwallow-1.5B-Instruct", value: "TinySwallow-1.5B-Instruct"}
         ]
       }],
     },
@@ -361,7 +378,7 @@ client.on('messageCreate', async (message) => {
           // 「入力中...」ステータスを表示
           await message.channel.sendTyping();
 
-          const text = await generateWithGitHubModels(targetChannelId, model ,`${username}:${message.content}`);
+          const text = await generateWithGitHubModelsAndOllama(targetChannelId, model ,`${username}:${message.content}`);
 
           // 生成が完了したらメッセージを送信
           await message.channel.send(`${text.content}\n\n model: ${model}`);
