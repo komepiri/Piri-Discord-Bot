@@ -9,6 +9,7 @@ import { fileURLToPath } from "url";
 import * as deepl from 'deepl-node';
 import express from 'express';
 import { Ollama } from 'ollama';
+import e from "express";
 const app = express();
 const port = 3000
 
@@ -55,19 +56,31 @@ const translator = new deepl.Translator(authKey);
 // デフォルトステータスメッセージ
 let StatusMessages = "PiriBot";
 
-  //
+const OllamaAIList = ["TinySwallow-1.5B-Instruct","LLM-jp-3 instruct3"]
+
 async function generateWithGitHubModelsAndOllama(channelId, modelName, text) {
   
-  if (modelName === "TinySwallow-1.5B-Instruct") {
+  if (OllamaAIList.includes(modelName)) {
+    if (modelName === "TinySwallow-1.5B-Instruct") {
     const ollama = new Ollama();
 
     let conversation = loadMessage(channelId);
     const response = await ollama.chat({
-      model: 'hf.co/SakanaAI/TinySwallow-1.5B-Instruct-GGUF',
+      model: 'hf.co/SakanaAI/TinySwallow-1.5B-Instruct-GGUF', // Sakana AI(日本企業)のモデル
       messages: conversation
   });
 
   return response.message;
+
+} else if (modelName === "LLM-jp-3 instruct3") {
+  const ollama = new Ollama();
+
+  let conversation = loadMessage(channelId);
+  const response = await ollama.chat({
+    model: 'hf.co/mmnga/llm-jp-3-7.2b-instruct3-gguf', // 国立情報学研究所のモデル
+    messages: conversation
+});
+
 } else {
 
   const client = new ModelClient(endpoint, new AzureKeyCredential(githubToken));
@@ -118,7 +131,8 @@ async function generateWithGitHubModelsAndOllama(channelId, modelName, text) {
             { name: "DeepSeek-R1", value: "DeepSeek-R1" },
             { name: "Phi-4", value: "Phi-4" },
             { name: "Llama-3.3-70B-Instruct", value: "Llama-3.3-70B-Instruct" },
-            { name: "TinySwallow-1.5B-Instruct", value: "TinySwallow-1.5B-Instruct"}
+            { name: "TinySwallow-1.5B-Instruct", value: "TinySwallow-1.5B-Instruct"},
+            { name: "LLM-jp-3 instruct3", value: "LLM-jp-3 instruct3"}
           ]
         }
       ]
@@ -141,7 +155,8 @@ async function generateWithGitHubModelsAndOllama(channelId, modelName, text) {
           { name: "DeepSeek-R1", value: "DeepSeek-R1" },
           { name: "Phi-4", value: "Phi-4" },
           { name: "Llama-3.3-70B-Instruct", value: "Llama-3.3-70B-Instruct" },
-          { name: "TinySwallow-1.5B-Instruct", value: "TinySwallow-1.5B-Instruct"}
+          { name: "TinySwallow-1.5B-Instruct", value: "TinySwallow-1.5B-Instruct"},
+          { name: "LLM-jp-3 instruct3", value: "LLM-jp-3 instruct3"}
         ]
       }],
     },
