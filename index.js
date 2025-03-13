@@ -56,7 +56,7 @@ const translator = new deepl.Translator(authKey);
 // デフォルトステータスメッセージ
 let StatusMessages = "PiriBot";
 
-const OllamaAIList = ["TinySwallow-1.5B-Instruct","LLM-jp-3 instruct3"]
+const OllamaAIList = ["TinySwallow-1.5B-Instruct","sarashina2.2-3b-instruct-v0.1"]
 
 async function generateWithGitHubModelsAndOllama(channelId, modelName, text) {
   
@@ -66,18 +66,18 @@ async function generateWithGitHubModelsAndOllama(channelId, modelName, text) {
 
     let conversation = loadMessage(channelId);
     const response = await ollama.chat({
-      model: 'hf.co/SakanaAI/TinySwallow-1.5B-Instruct-GGUF', // Sakana AI(日本企業)のモデル
+      model: 'hf.co/SakanaAI/TinySwallow-1.5B-Instruct-GGUF:Q8_0', // Sakana AI(日本企業)のモデル
       messages: conversation
   });
 
   return response.message;
 
-} else if (modelName === "LLM-jp-3 instruct3") {
+} else if (modelName === "sarashina2.2-3b-instruct-v0.1") {
   const ollama = new Ollama();
 
   let conversation = loadMessage(channelId);
   const response = await ollama.chat({
-    model: 'hf.co/mmnga/llm-jp-3-7.2b-instruct3-gguf', // 国立情報学研究所のモデル
+    model: 'hf.co/mmnga/sarashina2.2-3b-instruct-v0.1-gguf', // SB Intuitionsのモデル
     messages: conversation
 });
 
@@ -131,7 +131,7 @@ async function generateWithGitHubModelsAndOllama(channelId, modelName, text) {
             { name: "Phi-4", value: "Phi-4" },
             { name: "Llama-3.3-70B-Instruct", value: "Llama-3.3-70B-Instruct" },
             { name: "TinySwallow-1.5B-Instruct", value: "TinySwallow-1.5B-Instruct"},
-            { name: "LLM-jp-3 instruct3", value: "LLM-jp-3 instruct3"}
+            { name: "sarashina2.2-3b-instruct-v0.1", value: "sarashina2.2-3b-instruct-v0.1"}
           ]
         }
       ]
@@ -155,7 +155,7 @@ async function generateWithGitHubModelsAndOllama(channelId, modelName, text) {
           { name: "Phi-4", value: "Phi-4" },
           { name: "Llama-3.3-70B-Instruct", value: "Llama-3.3-70B-Instruct" },
           { name: "TinySwallow-1.5B-Instruct", value: "TinySwallow-1.5B-Instruct"},
-          { name: "LLM-jp-3 instruct3", value: "LLM-jp-3 instruct3"}
+          { name: "sarashina2.2-3b-instruct-v0.1", value: "sarashina2.2-3b-instruct-v0.1"}
         ]
       }],
     },
