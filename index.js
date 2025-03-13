@@ -83,7 +83,7 @@ if (modelName === "sarashina2.2-3b-instruct-v0.1") {
     model: 'hf.co/mmnga/sarashina2.2-3b-instruct-v0.1-gguf', // SB Intuitionsのモデル
     messages: conversation
 });
-
+  return response.message;
 }}
 
 // GitHub ModelsでAIに回答させるほう
