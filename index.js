@@ -465,22 +465,16 @@ client.on("interactionCreate", async (interaction) => {
 
     if (interaction.commandName === 'ai_conv_reset') {
         const channels = loadChannels();
-        if (channels.channels[interaction.guild.id]) {
-            const targetChannel = channels.channels[interaction.guild.id].channelId;
-            const channelFilePath = path.join(__dirname, 'conversations', `${targetChannel}.json`);
+            const channelFilePath = path.join(__dirname, 'conversations', `${interaction.channel.id}.json`);
             if (fs.existsSync(channelFilePath)) {
                 fs.unlinkSync(channelFilePath);
-                await interaction.reply(`<#${targetChannel}>の会話内容をリセットしました。`);
-                console.log(`reset conversation ${interaction.guild.id} / ${targetChannel} successfully.`);
+                await interaction.reply(`<#${nteraction.channel.id}>の会話内容をリセットしました。`);
+                console.log(`reset conversation ${interaction.guild.id} / ${nteraction.channel.id} successfully.`);
             } else {
                 await interaction.reply('会話内容が見つかりません。');
-                console.log(`conversation ${interaction.guild.id} / ${targetChannel} not found.`);
+                console.log(`conversation ${interaction.guild.id} / ${nteraction.channel.id} not found.`);
             }
-        } else {
-            await interaction.reply('このチャンネルには自動応答が有効化されていません。');
-            console.log(`channel ${interaction.guild.id} not found.`);
         }
-    }
 
     if (interaction.commandName === 'ai_status') {
       const channels = loadChannels();
