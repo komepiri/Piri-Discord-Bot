@@ -441,7 +441,7 @@ client.on("interactionCreate", async (interaction) => {
           const targetChannel = channels.channels[interaction.guild.id].channelId;
           delete channels.channels[interaction.guild.id];
           saveChannels(channels);
-          await interaction.reply(`<#${targetChannel}>の自動応答設定が削除されました。`);
+          await interaction.reply(`<#${targetChannel}>の自動応答設定が削除されました。\n今までの会話内容をリセットする場合は、ai_conv_resetコマンドを使用してください。`);
           console.log(`delete channel ${interaction.guild.id} / ${targetChannel} successfully.`);
       } else {
           await interaction.reply('このチャンネルには自動応答が有効化されていません。');
