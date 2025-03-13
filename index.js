@@ -60,6 +60,7 @@ const OllamaAIList = ["TinySwallow-1.5B-Instruct","sarashina2.2-3b-instruct-v0.1
 
 async function generateWithGitHubModelsAndOllama(channelId, modelName, text) {
   
+  // OllamaでAIに回答させるほう
   if (OllamaAIList.includes(modelName)) {
     if (modelName === "TinySwallow-1.5B-Instruct") {
     const ollama = new Ollama();
@@ -72,7 +73,9 @@ async function generateWithGitHubModelsAndOllama(channelId, modelName, text) {
 
   return response.message;
 
-} else if (modelName === "sarashina2.2-3b-instruct-v0.1") {
+} 
+
+if (modelName === "sarashina2.2-3b-instruct-v0.1") {
   const ollama = new Ollama();
 
   let conversation = loadMessage(channelId);
@@ -81,7 +84,10 @@ async function generateWithGitHubModelsAndOllama(channelId, modelName, text) {
     messages: conversation
 });
 
-} else {
+}}
+
+// GitHub ModelsでAIに回答させるほう
+if (!OllamaAIList.includes(modelName)) {
 
   const client = new ModelClient(endpoint, new AzureKeyCredential(githubToken));
   let conversation = loadMessage(channelId);
@@ -102,7 +108,7 @@ async function generateWithGitHubModelsAndOllama(channelId, modelName, text) {
   }
   
   return response.body.choices[0].message;
-}}}
+}}
 
   client.once('ready', async () => {
     const data = [{
