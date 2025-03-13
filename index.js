@@ -468,11 +468,11 @@ client.on("interactionCreate", async (interaction) => {
             const channelFilePath = path.join(__dirname, 'conversations', `${interaction.channel.id}.json`);
             if (fs.existsSync(channelFilePath)) {
                 fs.unlinkSync(channelFilePath);
-                await interaction.reply(`<#${nteraction.channel.id}>の会話内容をリセットしました。`);
-                console.log(`reset conversation ${interaction.guild.id} / ${nteraction.channel.id} successfully.`);
+                await interaction.reply(`<#${interaction.channel.id}>の会話内容をリセットしました。`);
+                console.log(`reset conversation ${interaction.guild.id} / ${interaction.channel.id} successfully.`);
             } else {
                 await interaction.reply('会話内容が見つかりません。');
-                console.log(`conversation ${interaction.guild.id} / ${nteraction.channel.id} not found.`);
+                console.log(`conversation ${interaction.guild.id} / ${interaction.channel.id} not found.`);
             }
         }
 
