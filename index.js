@@ -9,7 +9,7 @@ import { fileURLToPath } from "url";
 import * as deepl from 'deepl-node';
 import express from 'express';
 import { Ollama } from 'ollama';
-import e from "express";
+
 const app = express();
 const port = 3000
 
