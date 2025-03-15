@@ -167,7 +167,7 @@ if (!OllamaAIList.includes(modelName)) {
     },
     {
       name: "ai_conv_reset",
-      description: "会話内容をリセットします。",
+      description: "会話記録をリセットします。",
     },
     {
       name: "setstatus",
@@ -185,7 +185,7 @@ if (!OllamaAIList.includes(modelName)) {
     },
     {
       name: "ai_conv_exp",
-      description: "今までの会話内容を出力します。",
+      description: "今までの会話記録をjson形式で出力します。",
     },
     {
       name: "setpresence",
@@ -441,7 +441,7 @@ client.on("interactionCreate", async (interaction) => {
           const targetChannel = channels.channels[interaction.guild.id].channelId;
           delete channels.channels[interaction.guild.id];
           saveChannels(channels);
-          await interaction.reply(`<#${targetChannel}>の自動応答設定が削除されました。\n今までの会話内容をリセットする場合は、ai_conv_resetコマンドを使用してください。`);
+          await interaction.reply(`<#${targetChannel}>の自動応答設定が削除されました。\n今までの会話記録をリセットする場合は、ai_conv_resetコマンドを使用してください。`);
           console.log(`delete channel ${interaction.guild.id} / ${targetChannel} successfully.`);
       } else {
           await interaction.reply('このチャンネルには自動応答が有効化されていません。');
@@ -468,10 +468,10 @@ client.on("interactionCreate", async (interaction) => {
             const channelFilePath = path.join(__dirname, 'conversations', `${interaction.channel.id}.json`);
             if (fs.existsSync(channelFilePath)) {
                 fs.unlinkSync(channelFilePath);
-                await interaction.reply(`<#${interaction.channel.id}>の会話内容をリセットしました。`);
+                await interaction.reply(`<#${interaction.channel.id}>の会話記録をリセットしました。`);
                 console.log(`reset conversation ${interaction.guild.id} / ${interaction.channel.id} successfully.`);
             } else {
-                await interaction.reply('会話内容が見つかりません。');
+                await interaction.reply('会話記録が見つかりません。');
                 console.log(`conversation ${interaction.guild.id} / ${interaction.channel.id} not found.`);
             }
         }
@@ -579,7 +579,7 @@ client.on("interactionCreate", async (interaction) => {
               default:
                   throw new Error('無効なステータスです。');
           }
-          await interaction.reply(`ステータスが更新されました: ${status}`);
+          await interaction.reply(`ステータスを`);
       } catch (err) {
           console.log(err);
           await interaction.reply('ステータスの更新中にエラーが発生しました。');
