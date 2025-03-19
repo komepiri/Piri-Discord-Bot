@@ -550,7 +550,7 @@ client.on("interactionCreate", async (interaction) => {
           name: `${StatusMessages} | ${client.ws.ping}ms`,
           type: ActivityType.Custom
       });
-        await interaction.reply(`ステータスメッセージが更新されました: ${StatusMessages}`);
+        await interaction.reply(`ステータスメッセージを変更しました。`);
     }
 
     if (interaction.commandName === 'setpresence') {
@@ -579,7 +579,7 @@ client.on("interactionCreate", async (interaction) => {
               default:
                   throw new Error('無効なステータスです。');
           }
-          await interaction.reply(`ステータスを`);
+          await interaction.reply(`ステータスを変更しました。`);
       } catch (err) {
           console.log(err);
           await interaction.reply('ステータスの更新中にエラーが発生しました。');
