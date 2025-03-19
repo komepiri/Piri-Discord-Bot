@@ -23,7 +23,7 @@ const client = new Client({
   ]
 });
 
-// uptime kuma用
+// API
 app.get('/', (req, res) => {
   res.send('Sorry, this is not the API, the API is /status.')
 })
