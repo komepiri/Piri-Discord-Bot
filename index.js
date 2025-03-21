@@ -279,7 +279,7 @@ if (!OllamaAIList.includes(modelName)) {
   });
 
 client.on("ready", () => {
-  console.log(`Bot準備完了!(${client.user.tag})`);
+  console.log(`Bot起動完了 (${client.user.tag})`);
   client.startTime = Date.now();
 
   setInterval(() => {
