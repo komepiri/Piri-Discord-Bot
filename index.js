@@ -54,7 +54,7 @@ const authKey = process.env["DEEPL_TOKEN"]
 const translator = new deepl.Translator(authKey);
 
 // デフォルトステータスメッセージ
-let StatusMessages = "PiriBot";
+let StatusMessages = process.env["DEFAULT_STATUS_MESSAGE"];
 
 const OllamaAIList = ["TinySwallow-1.5B-Instruct","sarashina2.2-3b-instruct-v0.1"]
 
