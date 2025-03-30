@@ -769,4 +769,4 @@ if (interaction.commandName === 'translator') {
 
 })
 
-client.login(process.env.TOKEN);
+client.login(process.env.DISCORD_TOKEN);
