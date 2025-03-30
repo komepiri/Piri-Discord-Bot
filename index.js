@@ -112,7 +112,7 @@ if (!OllamaAIList.includes(modelName)) {
 }}
 
 client.once('ready', async () => {
-  const rawData = fs.readFileSync(path.join(__dirname, 'command-settings.json'), 'utf-8');
+  const rawData = fs.readFileSync(path.join(__dirname, 'command-register.json'), 'utf-8');
   const commands = JSON.parse(rawData);
   await client.application.commands.set(commands);
 });
