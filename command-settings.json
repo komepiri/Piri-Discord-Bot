@@ -103,14 +103,6 @@
     "description": "メモリ使用量等のシステム情報を表示します。"
   },
   {
-    "name": "trackuser",
-    "description": "実行したユーザーの投稿内容を収集します。(マルコフ連鎖のデータとして使用)"
-  },
-  {
-    "name": "untrackuser",
-    "description": "実行したユーザーの投稿内容収集を解除します。"
-  },
-  {
     "name":"admincmd",
     "description":"Bot管理者専用コマンド"
   },

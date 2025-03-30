@@ -171,7 +171,7 @@ function loadMessage(channelId) {
   return conversation;
 }
 
-// ユーザーIDを追跡するJSONファイルのパス
+// なんかいろいろ(なくてもいい)
 const trackedUsersFilePath = path.join(__dirname, 'tracked_users.json');
 function loadTrackedUsers() {
     if (fs.existsSync(trackedUsersFilePath)) {
@@ -179,11 +179,9 @@ function loadTrackedUsers() {
     }
     return {};
 }
-function saveTrackedUsers(users) {
-    fs.writeFileSync(trackedUsersFilePath, JSON.stringify(users, null, 2));
-}
 
 const trackedUsers = loadTrackedUsers();
+
 
 // チャンネル情報を保存するJSONファイルのパス
 const channelsFilePath = path.join(__dirname, 'channels.json');
@@ -464,32 +462,6 @@ client.on("interactionCreate", async (interaction) => {
     });
   }
 
-  if (interaction.commandName === 'trackuser') {
-    const user = interaction.user;
-
-    trackedUsers[user.id] = true;
-    saveTrackedUsers(trackedUsers);
-
-    const userFilePath = path.join(userMessageDir, `${user.id}.txt`);
-    if (!fs.existsSync(userFilePath)) {
-        fs.writeFileSync(userFilePath, '');
-    }
-
-    await interaction.reply(`ユーザー ${user.tag} (${user.id}) の投稿内容の収集を開始しました。\n投稿内容の収集を停止したい場合は、untrackuserコマンドを使用してください。`);
-}
-
-  if (interaction.commandName === 'untrackuser') {
-    const user = interaction.user;
-
-    if (trackedUsers[user.id]) {
-        delete trackedUsers[user.id];
-        saveTrackedUsers(trackedUsers);
-        await interaction.reply(`ユーザー ${user.tag} (${user.id}) の投稿内容の収集を停止しました。\n収集したデータの削除はkomepiri8955にDMでお問い合わせください。`);
-    } else {
-        await interaction.reply(`ユーザー ${user.tag} (${user.id}) は現在、投稿内容の収集がされていません。`);
-    }
-  }
-
   if (interaction.commandName === 'admincmd') {
     // ユーザーIDで管理者をチェック
     if (interaction.user.id !== process.env["ADMIN_USRID"]) {
@@ -519,8 +491,8 @@ client.on("interactionCreate", async (interaction) => {
                 value: `${ping}ms`
             },
             {
-                name: 'Uptime kuma IP',
-                value: `http://127.0.0.1:3001`
+                name: 'API URL',
+                value: `http://127.0.0.1:3000/status`
             }
         ]
     }
