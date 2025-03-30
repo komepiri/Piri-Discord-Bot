@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits, PresenceUpdateStatus, ActivityType, MessageFlags } from "discord.js";
+import { Client, GatewayIntentBits, PresenceUpdateStatus, ActivityType, MessageFlags, PermissionsBitField } from "discord.js";
 import { exec } from 'child_process';
 import ModelClient from "@azure-rest/ai-inference";
 import { AzureKeyCredential } from "@azure/core-auth";
@@ -19,7 +19,8 @@ const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildMembers
   ]
 });
 
@@ -50,8 +51,8 @@ const __dirname = path.dirname(__filename);
 const githubToken = process.env["GITHUB_TOKEN"];
 const endpoint = "https://models.inference.ai.azure.com";
 
-const authKey = process.env["DEEPL_TOKEN"]
-const translator = new deepl.Translator(authKey);
+const DeepLAuthKey = process.env["DEEPL_TOKEN"]
+const translator = new deepl.Translator(DeepLAuthKey);
 
 // デフォルトステータスメッセージ
 let StatusMessages = process.env["DEFAULT_STATUS_MESSAGE"];
@@ -65,7 +66,7 @@ async function generateWithGitHubModelsAndOllama(channelId, modelName, text) {
     if (modelName === "TinySwallow-1.5B-Instruct") {
     const ollama = new Ollama();
 
-    let conversation = loadMessage(channelId);
+    let conversation = loadConversations(channelId);
     const response = await ollama.chat({
       model: 'hf.co/SakanaAI/TinySwallow-1.5B-Instruct-GGUF:Q8_0', // Sakana AI(日本企業)のモデル
       messages: conversation
@@ -78,7 +79,7 @@ async function generateWithGitHubModelsAndOllama(channelId, modelName, text) {
 if (modelName === "sarashina2.2-3b-instruct-v0.1") {
   const ollama = new Ollama();
 
-  let conversation = loadMessage(channelId);
+  let conversation = loadConversations(channelId);
   const response = await ollama.chat({
     model: 'hf.co/mmnga/sarashina2.2-3b-instruct-v0.1-gguf', // SB Intuitionsのモデル
     messages: conversation
@@ -90,7 +91,7 @@ if (modelName === "sarashina2.2-3b-instruct-v0.1") {
 if (!OllamaAIList.includes(modelName)) {
 
   const client = new ModelClient(endpoint, new AzureKeyCredential(githubToken));
-  let conversation = loadMessage(channelId);
+  let conversation = loadConversations(channelId);
 
 
   const response = await client.path("/chat/completions").post({
@@ -160,7 +161,7 @@ function saveMessage(channelId, role, content, models) {
 }
 
 // チャンネルごとの会話内容を読み込む関数
-function loadMessage(channelId) {
+function loadConversations(channelId) {
   const channelFilePath = path.join(__dirname, 'conversations', `${channelId}.json`);
   let conversation = [];
 
@@ -183,11 +184,11 @@ function loadTrackedUsers() {
 const trackedUsers = loadTrackedUsers();
 
 
-// チャンネル情報を保存するJSONファイルのパス
+// 自動応答設定を保存するJSONファイルのパス
 const channelsFilePath = path.join(__dirname, 'channels.json');
 
-// チャンネル情報を読み込む関数
-function loadChannels() {
+// 自動応答設定を読み込む関数
+function loadChannelSettings() {
   if (fs.existsSync(channelsFilePath)) {
     const data = fs.readFileSync(channelsFilePath);
     return JSON.parse(data);
@@ -195,8 +196,8 @@ function loadChannels() {
   return { channels: {} };
 }
 
-// チャンネル情報を保存する関数
-function saveChannels(channels) {
+// 自動応答設定を保存する関数
+function saveChannelSettings(channels) {
   fs.writeFileSync(channelsFilePath, JSON.stringify(channels, null, 2));
 }
 
@@ -217,7 +218,7 @@ client.on('messageCreate', async (message) => {
   }
 
     // GitHub ModelsでAIに回答させる
-    const channels = loadChannels();
+    const channels = loadChannelSettings();
     if (!channels.channels[message.guild.id]) {
         return;
     }
@@ -261,22 +262,22 @@ client.on("interactionCreate", async (interaction) => {
     if (interaction.commandName === 'ai_setchannel') {
         const targetChannel = interaction.options.getChannel('channel');
         const model = interaction.options.getString('model');
-        const channels = loadChannels();
+        const channels = loadChannelSettings();
         channels.channels[interaction.guild.id] = {
             channelId: targetChannel.id,
             model: model
         };
-        saveChannels(channels);
+        saveChannelSettings(channels);
         await interaction.reply(`AIが自動応答するチャンネルを ${targetChannel} に設定しました。\nAIに応答してほしくない場合には「;」をメッセージの先頭につけてください。\n言語モデル: ${model}`);
         console.log(`channel set ${interaction.guild.id} / ${targetChannel.id} successfully.`);
     }
 
     if (interaction.commandName === 'ai_delchannel') {
-      const channels = loadChannels();
+      const channels = loadChannelSettings();
       if (channels.channels[interaction.guild.id]) {
           const targetChannel = channels.channels[interaction.guild.id].channelId;
           delete channels.channels[interaction.guild.id];
-          saveChannels(channels);
+          saveChannelSettings(channels);
           await interaction.reply(`<#${targetChannel}>の自動応答設定が削除されました。\n今までの会話記録をリセットする場合は、ai_conv_resetコマンドを使用してください。`);
           console.log(`delete channel ${interaction.guild.id} / ${targetChannel} successfully.`);
       } else {
@@ -287,10 +288,10 @@ client.on("interactionCreate", async (interaction) => {
 
     if (interaction.commandName === 'ai_model_change') {
         const model = interaction.options.getString('model');
-        const channels = loadChannels();
+        const channels = loadChannelSettings();
         if (channels.channels[interaction.guild.id]) {
             channels.channels[interaction.guild.id].model = model;
-            saveChannels(channels);
+            saveChannelSettings(channels);
             await interaction.reply(`AIの使用する言語モデルを ${model} に変更しました。`);
             console.log(`change model ${interaction.guild.id} / ${model} successfully.`);
         } else {
@@ -300,7 +301,7 @@ client.on("interactionCreate", async (interaction) => {
     }
 
     if (interaction.commandName === 'ai_conv_reset') {
-        const channels = loadChannels();
+        const channels = loadChannelSettings();
             const channelFilePath = path.join(__dirname, 'conversations', `${interaction.channel.id}.json`);
             if (fs.existsSync(channelFilePath)) {
                 fs.unlinkSync(channelFilePath);
@@ -313,13 +314,13 @@ client.on("interactionCreate", async (interaction) => {
         }
 
     if (interaction.commandName === 'ai_status') {
-      const channels = loadChannels();
+      const channels = loadChannelSettings();
       const targetChannel = channels.channels[interaction.guild.id];
       let model = '未設定';
       let currentChannelMessages = [];
       if (targetChannel) {
           model = targetChannel.model;
-          currentChannelMessages = loadMessage(targetChannel.channelId);
+          currentChannelMessages = loadConversations(targetChannel.channelId);
       }
       let currentChannelMessagesLength = currentChannelMessages.length - 1;
       if (currentChannelMessagesLength < 0) {
@@ -351,13 +352,13 @@ client.on("interactionCreate", async (interaction) => {
     }
 
     if (interaction.commandName === 'ai_conv_exp') {
-      const channels = loadChannels();
+      const channels = loadChannelSettings()
       if (channels.channels[interaction.guild.id]) {
         // 会話内容をjsonでそのままファイルとして(システムメッセージを除く)送信
         const targetChannel = channels.channels[interaction.guild.id].channelId;
-        const channelMessages = loadMessage(targetChannel);
+        const channelMessages = loadConversations(targetChannel);
         const messages = channelMessages.filter(msg => msg.role !== 'system');
-        const messagesText = messages.map(msg => `${msg.role}: ${msg.content}`).join('\n');
+        // const messagesText = messages.map(msg => `${msg.role}: ${msg.content}`).join('\n');
         const messagesFilePath = path.join(__dirname, 'messages.txt');
         fs.writeFileSync(messagesFilePath, JSON.stringify(messages, null, 2));
         await interaction.reply({
@@ -575,6 +576,34 @@ if (interaction.commandName === 'translator') {
       console.error(`Translation error: ${err.message}`);
       await interaction.reply(`Error: ${err.message}`);
   }
+}
+
+if (interaction.commandName === 'random-timeout') {
+  await interaction.deferReply();
+  // タイムアウト権限のチェック
+  if (!interaction.guild.members.me.permissions.has(PermissionsBitField.Flags.ModerateMembers)) {
+      await interaction.editReply('タイムアウト権限がありません。管理者につけてもらってください。');
+      return;
+  }
+  // 10秒から1分間タイムアウト
+  const randomTimeoutSeconds = Math.floor(Math.random() * (60 - 10 + 1)) + 10;
+
+  // サーバー内の全てのメンバーを取得
+  const members = await interaction.guild.members.fetch();
+
+  // Botと一定の権限以上のメンバーを除外
+  const eligibleMembers = members.filter(member => 
+      !member.user.bot && !member.permissions.has(PermissionsBitField.Flags.ModerateMembers)
+  );
+  if (eligibleMembers.size === 0) {
+    await interaction.editReply('タイムアウト可能なメンバーが見つかりませんでした。');
+    return;
+  }
+  // ランダムに対象メンバーを選択
+  const randomMember = eligibleMembers.random();
+  // タイムアウトを実行（GuildMember.timeout() を使用）
+  await randomMember.timeout(randomTimeoutSeconds * 1000, "Random timeout command");
+  await interaction.editReply(`ランダムに選ばれたメンバー <@${randomMember.id}> を ${randomTimeoutSeconds}秒間タイムアウトしました！`);
 }
 
 })

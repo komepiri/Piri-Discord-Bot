@@ -107,6 +107,10 @@
     "description":"Bot管理者専用コマンド"
   },
   {
+    "name": "random-timeout",
+    "description": "ランダムにユーザーを選び、ランダムな時間タイムアウトします。"
+  },
+  {
     "name": "encry",
     "description": "文字列を暗号化しbase64エンコードして返します。",
     "options": [{
