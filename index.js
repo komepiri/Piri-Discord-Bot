@@ -717,7 +717,8 @@ async function endPoll(interaction, pollId) {
 
   let resultMessage = '投票が終了しました！ 集計結果:\n```';
   options.forEach((option, index) => {
-      resultMessage += `選択肢 ${index + 1}: ${option} - ${results[index]} 票\n`;
+      const percentage = totalVotes > 0 ? ((results[index] / totalVotes) * 100).toFixed(2) : 0;
+      resultMessage += `選択肢 ${index + 1}: ${option} - ${results[index]} 票(${percentage})\n`;
   });
   resultMessage += '```';
 
