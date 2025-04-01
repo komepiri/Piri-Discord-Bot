@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits, PresenceUpdateStatus, ActivityType, MessageFlags, PermissionsBitField } from "discord.js";
+import { Client, GatewayIntentBits, PresenceUpdateStatus, ActivityType, MessageFlags, PermissionsBitField, ButtonStyle } from "discord.js";
 import { exec } from 'child_process';
 import ModelClient from "@azure-rest/ai-inference";
 import { AzureKeyCredential } from "@azure/core-auth";
@@ -23,6 +23,8 @@ const client = new Client({
     GatewayIntentBits.GuildMembers
   ]
 });
+
+const activePolls = new Map();
 
 // API
 app.get('/', (req, res) => {
@@ -606,6 +608,116 @@ if (interaction.commandName === 'random-timeout') {
   await interaction.editReply(`ランダムに選ばれたメンバー <@${randomMember.id}> を ${randomTimeoutSeconds}秒間タイムアウトしました！`);
 }
 
+if (interaction.commandName === 'dice') {
+  const sides = interaction.options.getInteger('sides');
+  const qty = interaction.options.getInteger('count');
+  const results = [];
+  for (let i = 0; i < qty; i++) {
+      results.push(Math.floor(Math.random() * sides) + 1);
+  }
+  const total = results.reduce((a, b) => a + b, 0);
+  await interaction.reply(`${sides}面サイコロを${qty}個振りました！\n ${results.join(', ')}\n合計: ${total}`);
+}
+
+if (interaction.commandName === 'poll') {
+  const question = interaction.options.getString('question');
+  const options = interaction.options.getString('options').split(',').map(opt => opt.trim());
+  const duration = interaction.options.getInteger('duration') || 600; // デフォルト10分（600秒）
+
+  if (options.length < 2 || options.length > 4) {
+      await interaction.reply('選択肢は2～4個である必要があります。');
+      return;
+  }
+  if (options.some(option => option === '')) {
+      await interaction.reply('選択肢は空にできません。');
+      return;
+  }
+
+  const pollId = `poll_${interaction.id}`;
+  console.log(`生成された pollId: ${pollId}`);
+  
+  const votes = new Map();
+  activePolls.set(pollId, { options, votes });
+  
+  const buttons = options.map((option, index) => ({
+      type: 2,
+      label: option,
+      style: 1,
+      custom_id: `${pollId}_${index}`
+  }));
+
+  const row = { type: 1, components: buttons };
+  const embed = {
+      title: '匿名投票',
+      description: question,
+      color: 0x00ff00,
+      fields: options.map((option, index) => ({
+          name: `選択肢 ${index + 1}`,
+          value: option,
+          inline: true
+      })),
+      footer: { text: `投票は ${duration} 秒後に終了します。 Poll ID:${pollId}` }
+  };
+
+  await interaction.reply({ embeds: [embed], components: [row] });
+
+  const collector = interaction.channel.createMessageComponentCollector({
+      filter: i => i.customId.startsWith(pollId),
+      time: duration * 1000
+  });
+
+  collector.on('collect', async i => {
+      votes.set(i.user.id, i.customId.split('_').pop());
+      await i.reply({ content: '投票を受け付けました！', ephemeral: true });
+  });
+
+  collector.on('end', async () => {
+      if (activePolls.has(pollId)) {
+          await endPoll(interaction, pollId);
+          activePolls.delete(pollId);
+      }
+  });
+}
+
+if (interaction.commandName === 'end-poll') {
+  let pollId = interaction.options.getString('poll_id');
+  if (!pollId) {
+      await interaction.reply('投票IDを指定してください。');
+      return;
+  }
+  pollId = pollId.trim();
+  console.log(`指定された pollId: ${pollId}`);
+  console.log(`現在の activePolls:`, activePolls);
+  
+  if (!activePolls.has(pollId)) {
+      await interaction.reply('無効な投票IDです。');
+      return;
+  }
+  
+  await interaction.deferReply(); // 返信の遅延を設定
+  await endPoll(interaction, pollId);
+  activePolls.delete(pollId);
+}
+
+async function endPoll(interaction, pollId) {
+  const poll = activePolls.get(pollId);
+  if (!poll) return;
+
+  const { options, votes } = poll;
+  const results = Array(options.length).fill(0);
+  votes.forEach(choice => results[choice]++);
+
+  let resultMessage = '投票が終了しました！ \n集計結果:\n```';
+  options.forEach((option, index) => {
+      resultMessage += `選択肢 ${index + 1}: ${option} - ${results[index]} 票\n`;
+  });
+  resultMessage += '```';
+
+  if (!interaction.deferred) {
+      await interaction.deferReply();
+  }
+  await interaction.followUp({ content: resultMessage });
+}
 })
 
 client.login(process.env.DISCORD_TOKEN);
