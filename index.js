@@ -656,7 +656,7 @@ if (interaction.commandName === 'poll') {
           value: option,
           inline: true
       })),
-      footer: { text: `投票は ${duration} 秒後に終了します。` }
+      footer: { text: `投票は ${duration} 秒後に終了します。 Poll ID:${pollId}` }
   };
 
   await interaction.reply({ embeds: [embed], components: [row] });
