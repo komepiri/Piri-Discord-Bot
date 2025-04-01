@@ -625,7 +625,7 @@ if (interaction.commandName === 'poll') {
   const duration = interaction.options.getInteger('duration') || 600; // デフォルト10分（600秒）
 
   if (options.length < 2 || options.length > 4) {
-      await interaction.reply('選択肢は2～4個である必要があります。');
+      await interaction.reply('選択肢は2～4個まで作成可能です。');
       return;
   }
   if (options.some(option => option === '')) {
@@ -671,12 +671,12 @@ if (interaction.commandName === 'poll') {
       const previousVote = votes.get(i.user.id);
       
       if (previousVote === selectedIndex) {
-          await i.reply({ content: 'すでにこの選択肢に投票しています！', ephemeral: true });
+          await i.reply({ content: 'すでにこの選択肢に投票しています！', flags: MessageFlags.Ephemeral });
           return;
       }
 
       votes.set(i.user.id, selectedIndex);
-      await i.reply({ content: '投票を受け付けました！', ephemeral: true });
+      await i.reply({ content: '投票を受け付けました！', flags: MessageFlags.Ephemeral });
   });
 
   collector.on('end', async () => {
@@ -694,8 +694,8 @@ if (interaction.commandName === 'end-poll') {
       return;
   }
   pollId = pollId.trim();
-  console.log(`指定された pollId: ${pollId}`);
-  console.log(`現在の activePolls:`, activePolls);
+  // console.log(`指定された pollId: ${pollId}`);
+  // console.log(`現在の activePolls:`, activePolls);
   
   if (!activePolls.has(pollId)) {
       await interaction.reply('無効な投票IDです。');
@@ -715,15 +715,17 @@ async function endPoll(interaction, pollId) {
   const results = Array(options.length).fill(0);
   votes.forEach(choice => results[choice]++);
 
-  let resultMessage = '投票が終了しました！ 結果:\n';
+  let resultMessage = '投票が終了しました！ 集計結果:\n```';
   options.forEach((option, index) => {
       resultMessage += `選択肢 ${index + 1}: ${option} - ${results[index]} 票\n`;
   });
+  resultMessage += '```';
 
-  if (!interaction.deferred) {
-      await interaction.deferReply();
+  try {
+      await interaction.followUp({ content: resultMessage });
+  } catch (error) {
+      console.error('投票結果の送信に失敗しました:', error);
   }
-  await interaction.followUp({ content: resultMessage });
 }
 
 })
