@@ -656,7 +656,7 @@ if (interaction.commandName === 'poll') {
           value: option,
           inline: true
       })),
-      footer: { text: `投票は ${duration} 秒後に終了します。 Poll ID:${pollId}` }
+      footer: { text: `投票は ${duration} 秒後に終了します。` }
   };
 
   await interaction.reply({ embeds: [embed], components: [row] });
@@ -667,7 +667,15 @@ if (interaction.commandName === 'poll') {
   });
 
   collector.on('collect', async i => {
-      votes.set(i.user.id, i.customId.split('_').pop());
+      const selectedIndex = i.customId.split('_').pop();
+      const previousVote = votes.get(i.user.id);
+      
+      if (previousVote === selectedIndex) {
+          await i.reply({ content: 'すでにこの選択肢に投票しています！', ephemeral: true });
+          return;
+      }
+
+      votes.set(i.user.id, selectedIndex);
       await i.reply({ content: '投票を受け付けました！', ephemeral: true });
   });
 
@@ -686,8 +694,8 @@ if (interaction.commandName === 'end-poll') {
       return;
   }
   pollId = pollId.trim();
-  // console.log(`指定された pollId: ${pollId}`);
-  // console.log(`現在の activePolls:`, activePolls);
+  console.log(`指定された pollId: ${pollId}`);
+  console.log(`現在の activePolls:`, activePolls);
   
   if (!activePolls.has(pollId)) {
       await interaction.reply('無効な投票IDです。');
@@ -707,17 +715,17 @@ async function endPoll(interaction, pollId) {
   const results = Array(options.length).fill(0);
   votes.forEach(choice => results[choice]++);
 
-  let resultMessage = '投票が終了しました！ \n集計結果:\n```';
+  let resultMessage = '投票が終了しました！ 結果:\n';
   options.forEach((option, index) => {
       resultMessage += `選択肢 ${index + 1}: ${option} - ${results[index]} 票\n`;
   });
-  resultMessage += '```';
 
   if (!interaction.deferred) {
       await interaction.deferReply();
   }
   await interaction.followUp({ content: resultMessage });
 }
+
 })
 
 client.login(process.env.DISCORD_TOKEN);
