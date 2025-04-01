@@ -712,6 +712,7 @@ async function endPoll(interaction, pollId) {
   if (!poll) return;
 
   const { options, votes } = poll;
+  const totalVotes = votes.size;
   const results = Array(options.length).fill(0);
   votes.forEach(choice => results[choice]++);
 
