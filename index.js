@@ -686,8 +686,8 @@ if (interaction.commandName === 'end-poll') {
       return;
   }
   pollId = pollId.trim();
-  console.log(`指定された pollId: ${pollId}`);
-  console.log(`現在の activePolls:`, activePolls);
+  // console.log(`指定された pollId: ${pollId}`);
+  // console.log(`現在の activePolls:`, activePolls);
   
   if (!activePolls.has(pollId)) {
       await interaction.reply('無効な投票IDです。');
