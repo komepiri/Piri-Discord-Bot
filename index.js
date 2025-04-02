@@ -621,8 +621,12 @@ if (interaction.commandName === 'dice') {
 
 if (interaction.commandName === 'poll') {
   const question = interaction.options.getString('question');
+  let description = interaction.options.getString('description');
+  if (!description || description.length === 0) {
+      description = '匿名投票を開始します。';
+  }
   const options = interaction.options.getString('options').split(',').map(opt => opt.trim());
-  const duration = interaction.options.getInteger('duration') || 600; // デフォルト10分（600秒）
+  const duration = interaction.options.getInteger('duration') || 600;
 
   if (options.length < 2 || options.length > 4) {
       await interaction.reply('選択肢は2～4個まで作成可能です。');
@@ -637,7 +641,7 @@ if (interaction.commandName === 'poll') {
   console.log(`生成された pollId: ${pollId}`);
   
   const votes = new Map();
-  activePolls.set(pollId, { options, votes });
+  activePolls.set(pollId, { options, votes, ended: false, message: null });
   
   const buttons = options.map((option, index) => ({
       type: 2,
@@ -648,18 +652,18 @@ if (interaction.commandName === 'poll') {
 
   const row = { type: 1, components: buttons };
   const embed = {
-      title: '匿名投票',
-      description: question,
+      title: question,
+      description: `**匿名投票** \n\n${description}`,
       color: 0x00ff00,
       fields: options.map((option, index) => ({
           name: `選択肢 ${index + 1}`,
           value: option,
-          inline: true
       })),
       footer: { text: `投票は ${duration} 秒後に終了します。 Poll ID:${pollId}` }
   };
 
-  await interaction.reply({ embeds: [embed], components: [row] });
+  const message = await interaction.reply({ embeds: [embed], components: [row], fetchReply: true });
+  activePolls.get(pollId).message = message;
 
   const collector = interaction.channel.createMessageComponentCollector({
       filter: i => i.customId.startsWith(pollId),
@@ -667,6 +671,12 @@ if (interaction.commandName === 'poll') {
   });
 
   collector.on('collect', async i => {
+      const poll = activePolls.get(pollId);
+      if (!poll || poll.ended) {
+          await i.reply({ content: 'すでに投票は終了しました！', flags: MessageFlags.Ephemeral });
+          return;
+      }
+      
       const selectedIndex = i.customId.split('_').pop();
       const previousVote = votes.get(i.user.id);
       
@@ -682,7 +692,6 @@ if (interaction.commandName === 'poll') {
   collector.on('end', async () => {
       if (activePolls.has(pollId)) {
           await endPoll(interaction, pollId);
-          activePolls.delete(pollId);
       }
   });
 }
@@ -694,24 +703,22 @@ if (interaction.commandName === 'end-poll') {
       return;
   }
   pollId = pollId.trim();
-  // console.log(`指定された pollId: ${pollId}`);
-  // console.log(`現在の activePolls:`, activePolls);
   
   if (!activePolls.has(pollId)) {
       await interaction.reply('無効な投票IDです。');
       return;
   }
   
-  await interaction.deferReply(); // 返信の遅延を設定
+  await interaction.deferReply();
   await endPoll(interaction, pollId);
-  activePolls.delete(pollId);
 }
 
 async function endPoll(interaction, pollId) {
   const poll = activePolls.get(pollId);
   if (!poll) return;
 
-  const { options, votes } = poll;
+  poll.ended = true;
+  const { options, votes, message } = poll;
   const totalVotes = votes.size;
   const results = Array(options.length).fill(0);
   votes.forEach(choice => results[choice]++);
@@ -723,7 +730,20 @@ async function endPoll(interaction, pollId) {
   });
   resultMessage += '```';
 
+  const disabledButtons = options.map((option, index) => ({
+      type: 2,
+      label: option,
+      style: 1,
+      custom_id: `${pollId}_${index}`,
+      disabled: true
+  }));
+
+  const disabledRow = { type: 1, components: disabledButtons };
+
   try {
+      if (message) {
+          await message.edit({ components: [disabledRow] });
+      }
       await interaction.followUp({ content: resultMessage });
   } catch (error) {
       console.error('投票結果の送信に失敗しました:', error);
