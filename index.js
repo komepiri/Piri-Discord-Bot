@@ -785,7 +785,7 @@ if (interaction.commandName === 'word2vec-similar') {
     const positiveInput = interaction.options.getString('positive');
     const negativeInput = interaction.options.getString('negative'); // 未指定の場合は空文字
     if (!positiveInput) {
-        await interaction.reply('少なくとも1つの正の単語を指定してください。');
+        await interaction.reply('減算のみは実装中');
         return;
     }
     const positive = positiveInput.split(',').map(s => s.trim()).filter(s => s.length > 0);
