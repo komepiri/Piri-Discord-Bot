@@ -750,6 +750,71 @@ async function endPoll(interaction, pollId) {
   }
 }
 
+// word2vec-similar コマンド
+if (interaction.commandName === 'word2vec-similar') {
+    const word = interaction.options.getString('word');
+    if (!word) {
+        await interaction.reply('単語を指定してください。');
+        return;
+    }
+    try {
+        const response = await fetch('http://localhost:5000/similar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ word })
+        });
+        const data = await response.json();
+        if (response.ok) {
+            // similar_words は [(単語, 値), …] の配列と仮定
+            let output = '';
+            data.similar_words.forEach(item => {
+                output += `${item[0]}: ${item[1]}\n`;
+            });
+            await interaction.reply(`単語 "${data.word}" の類似結果:\n\`\`\`${output}\`\`\``);
+        } else {
+            await interaction.reply(`エラー: ${data.error}`);
+        }
+    } catch (error) {
+        console.error(`Error in word2vec-similar: ${error.message}`);
+        await interaction.reply(`リクエスト中にエラーが発生しました: ${error.message}`);
+    }
+  }
+  
+  // word2vec-calc コマンド
+  if (interaction.commandName === 'word2vec-calc') {
+    const positiveInput = interaction.options.getString('positive');
+    const negativeInput = interaction.options.getString('negative'); // 未指定の場合は空文字
+    if (!positiveInput) {
+        await interaction.reply('少なくとも1つの正の単語を指定してください。');
+        return;
+    }
+    const positive = positiveInput.split(',').map(s => s.trim()).filter(s => s.length > 0);
+    let negative = [];
+    if (negativeInput) {
+        negative = negativeInput.split(',').map(s => s.trim()).filter(s => s.length > 0);
+    }
+    try {
+        const response = await fetch('http://localhost:5000/calculate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ positive, negative })
+        });
+        const data = await response.json();
+        if (response.ok) {
+            // result は [(単語, 値), …] の配列と仮定
+            let output = '';
+            data.result.forEach(item => {
+                output += `${item[0]}: ${item[1]}\n`;
+            });
+            await interaction.reply(`計算結果:\n\`\`\`${output}\`\`\``);
+        } else {
+            await interaction.reply(`エラー: ${data.error}`);
+        }
+    } catch (error) {
+        console.error(`Error in word2vec-calc: ${error.message}`);
+        await interaction.reply(`リクエスト中にエラーが発生しました: ${error.message}`);
+    }
+  }
 })
 
 client.login(process.env.DISCORD_TOKEN);

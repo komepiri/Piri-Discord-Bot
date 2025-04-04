@@ -164,6 +164,31 @@
     }]
   },
   {
+    "name": "word2vec-similar",
+    "description": "指定した単語に類似した単語を取得します。",
+    "options": [{
+      "type": 3,
+      "name": "word",
+      "description": "類似単語を取得する単語",
+      "required": true
+    }]
+  },
+  {
+    "name": "word2vec-calc",
+    "description": "指定した単語の足し算引き算を行います。",
+    "options": [{
+      "type": 3,
+      "name": "positive",
+      "description": "足し算する単語をカンマ区切りで指定"
+    },
+    {
+      "type": 3,
+      "name": "negative",
+      "description": "引き算する単語をカンマ区切りで指定"
+    }]
+
+  },
+  {
     "name": "encry",
     "description": "文字列を暗号化しbase64エンコードして返します。",
     "options": [{
