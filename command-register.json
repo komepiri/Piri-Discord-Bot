@@ -178,13 +178,9 @@
     "description": "指定した単語の足し算引き算を行います。",
     "options": [{
       "type": 3,
-      "name": "positive",
-      "description": "足し算する単語をカンマ区切りで指定"
-    },
-    {
-      "type": 3,
-      "name": "negative",
-      "description": "引き算する単語をカンマ区切りで指定"
+      "name": "expression",
+      "description": "単語の計算式(例:ラジオ - 音声 + 文字)",
+      "required": true
     }]
 
   },
