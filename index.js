@@ -70,7 +70,7 @@ async function generateWithGitHubModelsAndOllama(channelId, modelName, text) {
 
     let conversation = loadConversations(channelId);
     const response = await ollama.chat({
-      model: 'hf.co/SakanaAI/TinySwallow-1.5B-Instruct-GGUF:Q8_0', // Sakana AI(日本企業)のモデル
+      model: 'hf.co/SakanaAI/TinySwallow-1.5B-Instruct-GGUF:Q8_0', 
       messages: conversation
   });
 
@@ -83,7 +83,7 @@ if (modelName === "sarashina2.2-3b-instruct-v0.1") {
 
   let conversation = loadConversations(channelId);
   const response = await ollama.chat({
-    model: 'hf.co/mmnga/sarashina2.2-3b-instruct-v0.1-gguf', // SB Intuitionsのモデル
+    model: 'hf.co/mmnga/sarashina2.2-3b-instruct-v0.1-gguf', 
     messages: conversation
 });
   return response.message;
@@ -496,6 +496,10 @@ client.on("interactionCreate", async (interaction) => {
             {
                 name: 'API URL',
                 value: `http://127.0.0.1:3000/status`
+            },
+            {
+                name: 'Word2Vec API',
+                value: `http://127.0.0.1:5000`
             }
         ]
     }
@@ -547,7 +551,7 @@ if (interaction.commandName === 'dcry') {
             exec(command, (error, stdout, stderr) => {
                 if (error) {
                     console.error(`Error: ${error.message}`);
-                    return interaction.reply(`パスワードが間違っているか、エラーが発生しました。`);
+                    return interaction.reply(`パスワードが間違っているか、復号化にエラーが発生しました。`);
                 }
                 if (stderr) {
                     console.error(`stderr: ${stderr}`);
@@ -584,7 +588,7 @@ if (interaction.commandName === 'random-timeout') {
   await interaction.deferReply();
   // タイムアウト権限のチェック
   if (!interaction.guild.members.me.permissions.has(PermissionsBitField.Flags.ModerateMembers)) {
-      await interaction.editReply('タイムアウト権限がありません。管理者につけてもらってください。');
+      await interaction.editReply('タイムアウト権限がありません。管理者権限を持つユーザーにつけてもらってください。');
       return;
   }
   // 10秒から1分間タイムアウト
