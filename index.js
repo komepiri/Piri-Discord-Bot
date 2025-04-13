@@ -630,7 +630,7 @@ if (interaction.commandName === 'poll') {
       description = '匿名投票を開始します。';
   }
   const options = interaction.options.getString('options').split(',').map(opt => opt.trim());
-  const duration = interaction.options.getInteger('duration') || 600;
+  const duration = interaction.options.getInteger('duration') || 10;
 
   if (options.length < 2 || options.length > 4) {
       await interaction.reply('選択肢は2～4個まで作成可能です。');
@@ -663,7 +663,7 @@ if (interaction.commandName === 'poll') {
           name: `選択肢 ${index + 1}`,
           value: option,
       })),
-      footer: { text: `投票は ${duration} 秒後に終了します。 Poll ID:${pollId}` }
+      footer: { text: `投票は ${duration} 分後に終了します。 Poll ID:${pollId}` }
   };
 
   const message = await interaction.reply({ embeds: [embed], components: [row], fetchReply: true });
@@ -671,7 +671,7 @@ if (interaction.commandName === 'poll') {
 
   const collector = interaction.channel.createMessageComponentCollector({
       filter: i => i.customId.startsWith(pollId),
-      time: duration * 1000
+      time: duration * 60 * 1000
   });
 
   collector.on('collect', async i => {
