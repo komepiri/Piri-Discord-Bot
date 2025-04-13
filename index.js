@@ -436,7 +436,7 @@ client.on("interactionCreate", async (interaction) => {
     const uptimeMinutes = Math.floor((uptime / (1000 * 60)) % 60);
     const uptimeHours = Math.floor((uptime / (1000 * 60 * 60)) % 24);
     const uptimeDays = Math.floor(uptime / (1000 * 60 * 60 * 24));
-    await interaction.reply(`ボットの起動時間: ${uptimeDays}日 ${uptimeHours}時間 ${uptimeMinutes}分 ${uptimeSeconds}秒`); 
+    await interaction.reply(`Botの起動時間: ${uptimeDays}日 ${uptimeHours}時間 ${uptimeMinutes}分 ${uptimeSeconds}秒`); 
   }
 
   if (interaction.commandName === 'sysinfo') {
