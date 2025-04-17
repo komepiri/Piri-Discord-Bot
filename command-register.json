@@ -176,13 +176,26 @@
   {
     "name": "word2vec-calc",
     "description": "指定した単語の足し算引き算を行います。",
-    "options": [{
-      "type": 3,
-      "name": "expression",
-      "description": "単語の計算式(例:ラジオ - 音声 + 文字)",
-      "required": true
-    }]
-
+    "options": [
+      {
+        "type": 3,
+        "name": "expression",
+        "description": "単語の計算式(例: ラジオ - 音声 + 文字)",
+        "required": true
+      }
+    ]
+  },
+  {
+    "name": "snap-tweet",
+    "description": "指定したツイートを画像として取得し、送信します。",
+    "options": [
+      {
+        "type": 3,
+        "name": "tweeturl",
+        "description": "ツイートのURL",
+        "required": true
+      }
+    ]
   },
   {
     "name": "encry",
@@ -231,4 +244,5 @@
       "description": "翻訳する言語",
       "required": true
     }]
-  }]
+  }
+]

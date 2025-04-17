@@ -9,6 +9,7 @@ import { fileURLToPath } from "url";
 import * as deepl from 'deepl-node';
 import express from 'express';
 import { Ollama } from 'ollama';
+import {getSnapAppRender} from 'twitter-snap'
 
 const app = express();
 const port = 3000
@@ -832,6 +833,62 @@ if (interaction.commandName === 'word2vec-similar') {
     } catch (error) {
       console.error(`Error in word2vec-calc: ${error.message}`);
       await interaction.reply(`リクエスト中にエラーが発生しました: ${error.message}`);
+    }
+  }
+
+  if (interaction.commandName === 'snap-tweet') {
+    const tweetUrl = interaction.options.getString('tweeturl');
+    if (!tweetUrl) {
+        await interaction.reply('ツイートのURLを指定してください。');
+        return;
+    }
+    
+    await interaction.deferReply();
+    
+    const tweetDir = path.join(__dirname, 'tweet');
+    if (!fs.existsSync(tweetDir)) {
+        fs.mkdirSync(tweetDir, { recursive: true });
+    }
+    
+    try {
+        const snap = getSnapAppRender({ url: tweetUrl });
+        const font = await snap.getFont();
+        const session = await snap.login({ sessionType: 'guest' });
+        const render = await snap.getRender({ limit: 1, session });
+        
+        // snap.run はコールバック形式で実行する必要があるので、Promise でラップする
+        const res = await new Promise((resolve, reject) => {
+            snap.run(render, async (run) => {
+                try {
+                    const result = await run({
+                        width: 650,
+                        theme: 'RenderOceanBlueColor',
+                        font,
+                        output: path.join(tweetDir, '{id}-{count}.png')
+                    });
+                    resolve(result);
+                } catch (err) {
+                    reject(err);
+                }
+            });
+        });
+        
+        if (!res || !res.file || !res.file.path) {
+          throw new Error('画像の生成結果が正しく取得できませんでした。');
+        }
+        
+        const imagePath = res.file.path.toString();
+        console.log('画像生成完了:', imagePath);
+        await interaction.editReply({
+          files: [{ 
+            attachment: fs.createReadStream(imagePath), 
+            name: 'tweet.png' 
+          }]
+        });
+        await res.file.tempCleanup();
+    } catch (error) {
+        console.error(`Error in snap-tweet: ${error.message}`);
+        await interaction.editReply(`リクエスト中にエラーが発生しました: ${error.message}`);
     }
   }
 })
