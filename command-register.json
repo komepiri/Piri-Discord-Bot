@@ -42,8 +42,8 @@
       "description": "変更するモデルを選択",
       "required": true,
       "choices": [
-        { "name": "GPT-4o", "value": "GPT-4o" },
-        { "name": "GPT-4o-mini", "value": "GPT-4o-mini" },
+        { "name": "GPT-4o", "value": "openai/gpt-4o" },
+        { "name": "GPT-4.1-mini", "value": "openai/gpt-4.1-mini" },
         { "name": "DeepSeek-R1", "value": "DeepSeek-R1" },
         { "name": "Phi-4", "value": "Phi-4" },
         { "name": "Llama-3.3-70B-Instruct", "value": "Llama-3.3-70B-Instruct" },
