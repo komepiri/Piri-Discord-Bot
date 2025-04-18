@@ -478,8 +478,8 @@ client.on("interactionCreate", async (interaction) => {
     const botName = client.user.username;
     const ping = client.ws.ping;
     const embed = {
-        title: 'Bot管理者専用コマンド',
-        description: `参加しているサーバー数: ${guildCount}\n\n`,
+        title: 'Bot Infomation List',
+        description: `Installed Server: ${guildCount}\n\n`,
         color: 0x00ff00,
         fields: [
             {
@@ -501,6 +501,10 @@ client.on("interactionCreate", async (interaction) => {
             {
                 name: 'Word2Vec API',
                 value: `http://127.0.0.1:5000`
+            },
+            {
+              name: 'index.js File Size',
+              value: `${(fs.statSync(__filename).size / 1024).toFixed(2)} KB`
             }
         ]
     }
