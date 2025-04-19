@@ -148,7 +148,7 @@ function saveMessage(channelId, role, content, models) {
   let conversation = [];
   
   // システムメッセージを追加
-  const systemMessage = { role: "system", content: `You are a Bot AI running on Discord, named Piri Bot (<@1275786474805002341>). The language model is ${models}. You will be sent a message in the format of “name:content”, so please respond to the content.` };
+  const systemMessage = { role: "system", content: `You are PiriBot (<@1275786474805002341>), an AI bot running on Discord. Your language model is ${models}. You will receive messages in the format “name:userid:content”, please respond to the content. If you want to mention it, please use the format <@userid>. userid is a number of about 19 digits.` };
 
   if (fs.existsSync(channelFilePath)) {
       conversation = JSON.parse(fs.readFileSync(channelFilePath));
@@ -232,9 +232,10 @@ client.on('messageCreate', async (message) => {
     const model = channels.channels[message.guild.id].model;
     console.log(targetChannelId)
     const username = message.author.username;
+    const userid = message.author.id;
     if (message.channel.id === targetChannelId) {
       try {
-          saveMessage(message.channel.id, "user", `${username}:${message.content}`, model);
+          saveMessage(message.channel.id, "user", `${username}:${userid}:${message.content}`, model);
           // 「入力中...」ステータスを表示
           await message.channel.sendTyping();
 
