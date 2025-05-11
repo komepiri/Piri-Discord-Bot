@@ -709,13 +709,13 @@ if (interaction.commandName === 'poll') {
 if (interaction.commandName === 'end-poll') {
   let pollId = interaction.options.getString('poll_id');
   if (!pollId) {
-      await interaction.reply('投票IDを指定してください。');
+      await interaction.reply('投票ID(Poll ID)を指定してください。');
       return;
   }
   pollId = pollId.trim();
   
   if (!activePolls.has(pollId)) {
-      await interaction.reply('無効な投票IDです。');
+      await interaction.reply('無効な投票ID(Poll ID)です。');
       return;
   }
   
@@ -782,11 +782,11 @@ if (interaction.commandName === 'word2vec-similar') {
             });
             await interaction.reply(`単語 "${data.word}" の類似結果:\n\`\`\`${output}\`\`\``);
         } else {
-            await interaction.reply(`エラー: ${data.error}`);
+            await interaction.reply(`エラーが発生しました。\n-# エラー情報 ${data.error}`);
         }
     } catch (error) {
         console.error(`Error in word2vec-similar: ${error.message}`);
-        await interaction.reply(`リクエスト中にエラーが発生しました: ${error.message}`);
+        await interaction.reply(`Word2Vec API Request Error: ${error.message}`);
     }
   }
   
@@ -837,7 +837,7 @@ if (interaction.commandName === 'word2vec-similar') {
       }
     } catch (error) {
       console.error(`Error in word2vec-calc: ${error.message}`);
-      await interaction.reply(`リクエスト中にエラーが発生しました: ${error.message}`);
+      await interaction.reply(`Word2Vec API Request Error: ${error.message}`);
     }
   }
 
@@ -893,7 +893,7 @@ if (interaction.commandName === 'word2vec-similar') {
         await res.file.tempCleanup();
     } catch (error) {
         console.error(`Error in snap-tweet: ${error.message}`);
-        await interaction.editReply(`リクエスト中にエラーが発生しました: ${error.message}`);
+        await interaction.editReply(`Generate Image Error: ${error.message}`);
     }
   }
 })
