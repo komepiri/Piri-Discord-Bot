@@ -13,6 +13,7 @@
     "ollama": "^0.5.14",
     "path": "^0.12.7",
     "twitter-snap": "^0.0.75",
+    "unix-crypt-td-js": "^1.1.4",
     "url": "^0.11.4"
   },
   "type": "module"

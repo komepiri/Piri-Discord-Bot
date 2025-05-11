@@ -244,5 +244,15 @@
       "description": "翻訳する言語",
       "required": true
     }]
+  },
+  {
+    "name": "generate-trip",
+    "description": "トリップを生成します。",
+    "options": [{
+      "type": 3,
+      "name": "tripkey",
+      "description": "トリップキー",
+      "required": true
+    }]
   }
 ]

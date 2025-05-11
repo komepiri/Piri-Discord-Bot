@@ -10,6 +10,9 @@ import * as deepl from 'deepl-node';
 import express from 'express';
 import { Ollama } from 'ollama';
 import {getSnapAppRender} from 'twitter-snap'
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const crypt = require('unix-crypt-td-js');
 
 const app = express();
 const port = 3000
@@ -209,6 +212,21 @@ const encryptedFilePath = path.join(__dirname, 'encrypted_temp.txt');
 
 // 復号化後のファイルの保存先
 const decryptedFilePath = path.join(__dirname, 'decrypted.txt');
+
+
+// トリップ作成
+function generateTrip(tripkey) {
+    let salt = (tripkey + 'H.').slice(1, 3);
+    salt = salt.replace(/[^\.-z]/g, '.');
+    salt = salt.replace(/[:;<=>?@[\\\]^_`]/g, c =>
+        'ABCDEFGabcdef'.charAt(':;<=>?@[\\]^_`'.indexOf(c))
+    );
+
+    const hash = crypt(tripkey, salt);
+    const trip = hash.slice(-10);
+
+    return '◆' + trip;
+}
 
 
 client.on('messageCreate', async (message) => {
@@ -895,6 +913,16 @@ if (interaction.commandName === 'word2vec-similar') {
         console.error(`Error in snap-tweet: ${error.message}`);
         await interaction.editReply(`Generate Image Error: ${error.message}`);
     }
+  }
+
+  if (interaction.commandName === 'generate-trip') {
+    const tripkey = interaction.options.getString('tripkey');
+    if (!tripkey) {
+        await interaction.reply('トリップキーを指定してください。');
+        return;
+    }
+    const trip = generateTrip(tripkey);
+    await interaction.reply(`生成されたトリップ: ${trip}`);
   }
 })
 
