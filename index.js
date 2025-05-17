@@ -101,13 +101,13 @@ if (!OllamaAIList.includes(modelName)) {
 
 
   const response = await client.path("/chat/completions").post({
-      body: {
-          messages: conversation,
-          temperature: 1.0,
-          top_p: 1.0,
-          max_tokens: 1000,
-          model: modelName
-      }
+    body: {
+      messages: conversation,
+      temperature: 1.0,
+      top_p: 1.0,
+      max_tokens: 1000,
+      model: modelName
+    }
   });
 
   if (response.status !== "200") {
