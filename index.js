@@ -55,7 +55,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const githubToken = process.env["GITHUB_TOKEN"];
-const endpoint = "https://models.inference.ai.azure.com";
+const endpoint = "https://models.github.ai/inference";
 
 const DeepLAuthKey = process.env["DEEPL_TOKEN"]
 const translator = new deepl.Translator(DeepLAuthKey);
