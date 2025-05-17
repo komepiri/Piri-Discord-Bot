@@ -113,7 +113,7 @@ if (!OllamaAIList.includes(modelName)) {
   if (response.status !== "200") {
       throw response.body.error;
   }
-  
+  // console.log(response.body.choices[0].message.content);
   return response.body.choices[0].message;
 }}
 
@@ -248,7 +248,7 @@ client.on('messageCreate', async (message) => {
     }
     const targetChannelId = channels.channels[message.guild.id].channelId;
     const model = channels.channels[message.guild.id].model;
-    console.log(targetChannelId)
+    // console.log(targetChannelId)
     const username = message.author.username;
     const userid = message.author.id;
     if (message.channel.id === targetChannelId) {
@@ -258,6 +258,7 @@ client.on('messageCreate', async (message) => {
           await message.channel.sendTyping();
 
           const text = await generateWithGitHubModelsAndOllama(targetChannelId, model ,`${username}:${message.content}`);
+          // console.log(text);
 
           // 生成が完了したらメッセージを送信
           await message.channel.send(`${text.content}\n\n model: ${model}`);
