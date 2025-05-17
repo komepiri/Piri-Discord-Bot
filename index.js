@@ -11,7 +11,7 @@ import express from 'express';
 import { Ollama } from 'ollama';
 import {getSnapAppRender} from 'twitter-snap'
 import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
+const require = createRequire(import.meta.url); // CommonJSのrequireを使用するためにつくったやつ package.jsonでESMにしたせいでこうなってる
 const crypt = require('unix-crypt-td-js');
 
 const app = express();
@@ -214,7 +214,7 @@ const encryptedFilePath = path.join(__dirname, 'encrypted_temp.txt');
 const decryptedFilePath = path.join(__dirname, 'decrypted.txt');
 
 
-// トリップ作成
+// トリップ作成(WikipediaのPerlコードの移植)
 function generateTrip(tripkey) {
     let salt = (tripkey + 'H.').slice(1, 3);
     salt = salt.replace(/[^\.-z]/g, '.');
@@ -238,7 +238,7 @@ client.on('messageCreate', async (message) => {
       fs.appendFileSync(userFilePath, `${message.createdAt}: ${message.content}\n`);
   }
 
-    // GitHub ModelsでAIに回答させる
+    // GitHub ModelsでAIに回答させるやつ
     const channels = loadChannelSettings();
     if (!channels.channels[message.guild.id]) {
         return;
