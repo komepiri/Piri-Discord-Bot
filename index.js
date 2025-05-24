@@ -13,6 +13,7 @@ import {getSnapAppRender} from 'twitter-snap'
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url); // CommonJSのrequireを使用するためにつくったやつ package.jsonでESMにしたせいでこうなってる
 const crypt = require('unix-crypt-td-js');
+import puppeteer from 'puppeteer';
 
 const app = express();
 const port = 3000
@@ -924,6 +925,37 @@ if (interaction.commandName === 'word2vec-similar') {
     }
     const trip = generateTrip(tripkey);
     await interaction.reply(`生成されたトリップ: ${trip}`);
+  }
+
+  if (interaction.commandName === 'screenshot') {
+    const url = interaction.options.getString('url');
+    const width = interaction.options.getInteger('width') || 1280;
+    const height = interaction.options.getInteger('height') || 720;
+
+    await interaction.deferReply();
+    const screenshotDir = path.join(__dirname, 'screenshots');
+    if (!fs.existsSync(screenshotDir)) {
+        fs.mkdirSync(screenshotDir, { recursive: true });
+    }
+    const screenshotPath = path.join(screenshotDir, `screenshot-${Date.now()}.png`);
+    try {
+        const browser = await puppeteer.launch();
+        const page = await browser.newPage();
+        await page.setViewport({ width, height });
+        await page.goto(url, { waitUntil: 'networkidle2' });
+        await page.screenshot({ path: screenshotPath});
+        await browser.close();
+
+        await interaction.editReply({
+            files: [{
+                attachment: screenshotPath,
+                name: 'screenshot.png'
+            }]
+        });
+    } catch (error) {
+        console.error(`Error in screenshot command: ${error.message}`);
+        await interaction.editReply(`Screenshot Error: ${error.message}`);
+    }
   }
 })
 

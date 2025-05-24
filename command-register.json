@@ -254,5 +254,27 @@
       "description": "トリップキー",
       "required": true
     }]
+  },
+  {
+    "name": "screenshot",
+    "description": "指定したURLのスクリーンショットを取得します。",
+    "options": [{
+      "type": 3,
+      "name": "url",
+      "description": "スクリーンショットを取得するURL",
+      "required": true
+    },
+    {
+      "type": 4,
+      "name": "width",
+      "description": "スクリーンショットの幅",
+      "required": false
+    },
+    {
+      "type": 4,
+      "name": "height",
+      "description": "スクリーンショットの高さ",
+      "required": false
+    }]
   }
 ]
