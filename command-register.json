@@ -276,5 +276,9 @@
       "description": "スクリーンショットの高さ",
       "required": false
     }]
+  },
+  {
+    "name": "Make it a Quoteの作成",
+    "type": 3
   }
 ]

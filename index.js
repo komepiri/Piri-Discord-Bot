@@ -7,7 +7,7 @@ import path from 'path';
 import dotenv from 'dotenv';
 import { fileURLToPath } from "url";
 import * as deepl from 'deepl-node';
-import express from 'express';
+import express, { response } from 'express';
 import { Ollama } from 'ollama';
 import {getSnapAppRender} from 'twitter-snap'
 import { createRequire } from 'module';
@@ -121,6 +121,7 @@ if (!OllamaAIList.includes(modelName)) {
 client.once('ready', async () => {
   const rawData = fs.readFileSync(path.join(__dirname, 'command-register.json'), 'utf-8');
   const commands = JSON.parse(rawData);
+  console.log(commands)
   await client.application.commands.set(commands);
 });
 
@@ -229,6 +230,35 @@ function generateTrip(tripkey) {
     return '◆' + trip;
 }
 
+async function generateMiqImages(username, displayName, text, avatarUrl) {
+    const requestData = {
+        username: username,             
+        display_name: displayName, 
+        text: text,     
+        avatar: avatarUrl, 
+        color: true,               
+    };
+    
+        try {
+        const response = await fetch('https://api.voids.top/fakequote', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData),
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTPエラー: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('生成完了:', data.url);
+        return data.url; 
+    } catch (error) {
+        console.error('生成失敗:', error);
+    }
+  }
 
 client.on('messageCreate', async (message) => {
     if (message.author.bot) return;
@@ -956,6 +986,34 @@ if (interaction.commandName === 'word2vec-similar') {
         console.error(`Error in screenshot command: ${error.message}`);
         await interaction.editReply(`Screenshot Error: ${error.message}`);
     }
+  }
+
+  // Make it Quoteの画像を生成するコンテキストメニューコマンド
+  if (interaction.isContextMenuCommand() && interaction.commandName === 'Make it a Quoteの作成') {
+    const targetMessage = await interaction.channel.messages.fetch(interaction.targetId);
+    const targetUser = targetMessage.author;
+    const targetUserName = targetUser.username;
+    const targetUserDisplayName = targetUser.displayName;
+    const targetUserIconURL = targetUser.displayAvatarURL({ format: 'png', size: 128 });
+
+    if (!targetMessage) {
+        await interaction.reply({ content: '指定されたメッセージが見つかりません。', ephemeral: true });
+        return;
+    }
+    const imageurl = await generateMiqImages(
+        targetUserName,
+        targetUserDisplayName,
+        targetMessage.content,
+        targetUserIconURL
+    )
+    console.log(`Generated image URL: ${imageurl}`);
+    await interaction.deferReply();
+    await interaction.editReply({
+      files: [{
+        attachment: imageurl,
+        name: 'quote.png'
+    }]
+  });
   }
 })
 
