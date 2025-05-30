@@ -137,6 +137,18 @@ client.on("ready", () => {
   }, 3000);
 });
 
+client.on("guildCreate", async (guild) => {
+  // 参加したサーバーの所有者にDMを送信
+  const owner = await guild.fetchOwner();
+  const dmChannel = await owner.createDM();
+  const welcomeEmbed = {
+    title: 'Bot導入ありがとうございます！',
+    description: 'PiriBotを導入していただきありがとうございます！\n\nこのBotはAIを使用して会話することができる機能や、その他様々な便利なツールを提供します。\n\nコマンドの一覧については、`/help`をご確認ください。\n\n何か問題があれば、komepiri8955までご連絡ください。',
+    color: 0x00ff00
+  }
+  dmChannel.send({ embeds: [welcomeEmbed] });
+})
+
 // メッセージ保存ディレクトリ
 const userMessageDir = path.join(__dirname, 'UserMessage');
 if (!fs.existsSync(userMessageDir)) {
