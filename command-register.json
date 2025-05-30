@@ -275,6 +275,10 @@
     }]
   },
   {
+    "name": "Make it a Quoteの作成",
+    "type": 3
+  },
+  {
     "name": "help",
     "description": "コマンドのヘルプを表示します。"
   }
