@@ -25,7 +25,8 @@ const client = new Client({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
-    GatewayIntentBits.GuildMembers
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.DirectMessages,
   ]
 });
 
@@ -135,6 +136,8 @@ client.on("ready", () => {
     });
   }, 3000);
 });
+
+client.on('guildCr')
 
 // メッセージ保存ディレクトリ
 const userMessageDir = path.join(__dirname, 'UserMessage');
