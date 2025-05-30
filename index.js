@@ -242,13 +242,13 @@ function generateTrip(tripkey) {
     return '◆' + trip;
 }
 
-async function generateMiqImages(username, displayName, text, avatarUrl) {
+async function generateMiqImages(username, displayName, text, avatarUrl, color) {
     const requestData = {
         username: username,             
         display_name: displayName, 
         text: text,     
         avatar: avatarUrl, 
-        color: true,               
+        color: color,               
     };
     
         try {
@@ -1068,7 +1068,7 @@ if (interaction.commandName === 'word2vec-similar') {
   }
 
   // Make it Quoteの画像を生成するコンテキストメニューコマンド
-  if (interaction.isContextMenuCommand() && interaction.commandName === 'Make it a Quoteの作成') {
+  if (interaction.isContextMenuCommand() && interaction.commandName === 'Make it a Quoteの作成(モノクロ)') {
     const targetMessage = await interaction.channel.messages.fetch(interaction.targetId);
     const targetUser = targetMessage.author;
     const targetUserName = targetUser.username;
@@ -1083,7 +1083,36 @@ if (interaction.commandName === 'word2vec-similar') {
         targetUserName,
         targetUserDisplayName,
         targetMessage.content,
-        targetUserIconURL
+        targetUserIconURL,
+        false
+    )
+
+    await interaction.deferReply();
+    await interaction.editReply({
+      files: [{
+        attachment: imageurl,
+        name: 'quote.png'
+    }]
+  });
+  }
+
+    if (interaction.isContextMenuCommand() && interaction.commandName === 'Make it a Quoteの作成(カラー)') {
+    const targetMessage = await interaction.channel.messages.fetch(interaction.targetId);
+    const targetUser = targetMessage.author;
+    const targetUserName = targetUser.username;
+    const targetUserDisplayName = targetUser.displayName;
+    const targetUserIconURL = targetUser.displayAvatarURL({ format: 'png', size: 128 });
+
+    if (!targetMessage) {
+        await interaction.reply({ content: '指定されたメッセージが見つかりません。', ephemeral: true });
+        return;
+    }
+    const imageurl = await generateMiqImages(
+        targetUserName,
+        targetUserDisplayName,
+        targetMessage.content,
+        targetUserIconURL,
+        true
     )
 
     await interaction.deferReply();

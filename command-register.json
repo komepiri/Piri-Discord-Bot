@@ -275,7 +275,11 @@
     }]
   },
   {
-    "name": "Make it a Quoteの作成",
+    "name":"Make it a Quoteの作成(モノクロ)",
+    "type": 3
+  },
+  {
+    "name": "Make it a Quoteの作成(カラー)",
     "type": 3
   },
   {
