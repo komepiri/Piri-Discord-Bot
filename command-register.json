@@ -1,7 +1,4 @@
-[{
-    "name": "komegen",
-    "description": "こめぴりが言ってそうなことを生成します。"
-  },
+[
   {
     "name": "ai_setchannel",
     "description": "AIが常に返答するチャンネルを設定します。",
@@ -68,7 +65,7 @@
   },
   {
     "name": "ai_status",
-    "description": "BotのAIの状態を確認します。"
+    "description": "BotのAIの状態を表示します。"
   },
   {
     "name": "ai_conv_exp",
@@ -92,7 +89,7 @@
   },
   {
     "name": "ping",
-    "description": "Botのping値を確認します。"
+    "description": "Botのping値を表示します。"
   },
   {
     "name": "uptime",
@@ -278,7 +275,7 @@
     }]
   },
   {
-    "name": "Make it a Quoteの作成",
-    "type": 3
+    "name": "help",
+    "description": "コマンドのヘルプを表示します。"
   }
 ]

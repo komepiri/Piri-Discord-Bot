@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits, PresenceUpdateStatus, ActivityType, MessageFlags, PermissionsBitField, ButtonStyle } from "discord.js";
+import { Client, GatewayIntentBits, PresenceUpdateStatus, ActivityType, MessageFlags, PermissionsBitField, ButtonStyle, ActionRowBuilder, StringSelectMenuBuilder } from "discord.js";
 import { exec } from 'child_process';
 import ModelClient from "@azure-rest/ai-inference";
 import { AzureKeyCredential } from "@azure/core-auth";
@@ -121,7 +121,6 @@ if (!OllamaAIList.includes(modelName)) {
 client.once('ready', async () => {
   const rawData = fs.readFileSync(path.join(__dirname, 'command-register.json'), 'utf-8');
   const commands = JSON.parse(rawData);
-  console.log(commands)
   await client.application.commands.set(commands);
 });
 
@@ -253,10 +252,9 @@ async function generateMiqImages(username, displayName, text, avatarUrl) {
         }
 
         const data = await response.json();
-        console.log('生成完了:', data.url);
         return data.url; 
     } catch (error) {
-        console.error('生成失敗:', error);
+        console.error('miq画像生成失敗:', error);
     }
   }
 
@@ -305,13 +303,81 @@ client.on('messageCreate', async (message) => {
 // スラッシュコマンドの処理
 client.on("interactionCreate", async (interaction) => {
     if (!interaction.isCommand()) return;
-  
-    if (interaction.commandName === 'komegen') {
-      await interaction.reply({
-        content: 'coming soon...',
-        flags: MessageFlags.Ephemeral
+
+      if (interaction.commandName === 'help') {
+    
+    const categoriesAndCommandLists = {
+        'AI系': [
+            { name: 'ai_setchannel', description: 'AIが自動応答するチャンネルを設定します。' },
+            { name: 'ai_delchannel', description: 'AIの自動応答設定を削除します。' },
+            { name: 'ai_model_change', description: 'AIが使用する言語モデルを変更します。' },
+            { name: 'ai_conv_reset', description: '現在のチャンネルの会話記録をリセットします。' },
+            { name: 'ai_status', description: 'AIの自動応答状態を表示します。' },
+            { name: 'ai_conv_exp', description: '現在のチャンネルの会話内容をJSON形式でエクスポートします。' }
+        ],
+        '管理者ツール': [
+            { name: 'admincmd', description: 'Botの情報を表示(開発者専用)' },
+            { name: 'ping', description: 'BotのPing値を表示します。' },
+            { name: 'uptime', description: 'Botの起動時間を表示します。' },
+        ],
+        'ツール' : [
+            { name: 'translator', description: 'テキストを翻訳します。' },
+            { name: 'random-timeout', description: 'ランダムに選ばれたメンバーにタイムアウトを実行します。' },
+            { name: 'dice', description: '指定した面数のサイコロを振ります。' },
+            { name: 'poll', description: '匿名投票を作成します。' },
+            { name: 'end-poll', description: '匿名投票を終了し、結果を表示します。' },
+            { name: 'encry', description: 'テキストを暗号化してファイルとして保存します。' },
+            { name: 'dcry', description: '暗号化されたファイルを復号化して内容を表示します。' },
+            { name: 'screenshot', description: '指定したURLのスクリーンショットを取得します。' },
+            { name: 'snap-tweet', description: '指定したツイートのスクリーンショットを生成します。' },
+            { name: 'generate-trip', description: '電子掲示板などで使用されるトリップを生成します。' }
+        ],
+        'その他': [
+            { name: 'word2vec-similar', description: '指定した単語の類似単語を取得します。使えない場合が多いです。' },
+            { name: 'word2vec-calc', description: 'Word2Vecでの単語の計算を行います。使えない場合が多いです。' },
+            { name: 'Make it a Quoteの作成', description: 'Make it a Quoteの画像を生成します。コンテキストメニューのコマンドです。' }
+        ]
+    };
+    
+    const initialEmbed = {
+        title: 'Help',
+        description: '左下のドロップダウンメニューから表示したいカテゴリを選択してください。',
+        color: 0x00ff00
+    };
+    
+    const selectOptions = Object.keys(categoriesAndCommandLists).map(category => ({
+        label: category,
+        value: category,
+        description: `${category} のコマンド一覧を表示`
+    }));
+    
+    const row = new ActionRowBuilder().addComponents(
+        new StringSelectMenuBuilder()
+            .setCustomId('help_select')
+            .setPlaceholder('カテゴリを選択')
+            .addOptions(selectOptions)
+    );
+    
+    await interaction.reply({ embeds: [initialEmbed], components: [row] });
+    
+    const filter = i => i.customId === 'help_select' && i.user.id === interaction.user.id;
+    const collector = interaction.channel.createMessageComponentCollector({ filter, time: 60000 });
+    
+    collector.on('collect', async i => {
+        const category = i.values[0];
+        const commands = categoriesAndCommandLists[category];
+        const commandDescriptions = commands.map(cmd => `**${cmd.name}**: ${cmd.description}`).join('\n');
+    
+        const updatedEmbed = {
+            title: `Help ${category}`,
+            description: commandDescriptions,
+            color: 0x00ff00
+        };
+    
+        // 選択メニューはそのまま表示
+        await i.update({ embeds: [updatedEmbed], components: [row] });
     });
-    }
+}
 
     if (interaction.commandName === 'ai_setchannel') {
         const targetChannel = interaction.options.getChannel('channel');
@@ -1006,7 +1072,7 @@ if (interaction.commandName === 'word2vec-similar') {
         targetMessage.content,
         targetUserIconURL
     )
-    console.log(`Generated image URL: ${imageurl}`);
+
     await interaction.deferReply();
     await interaction.editReply({
       files: [{
