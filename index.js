@@ -137,8 +137,6 @@ client.on("ready", () => {
   }, 3000);
 });
 
-client.on('guildCr')
-
 // メッセージ保存ディレクトリ
 const userMessageDir = path.join(__dirname, 'UserMessage');
 if (!fs.existsSync(userMessageDir)) {
