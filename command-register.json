@@ -101,7 +101,24 @@
   },
   {
     "name":"admincmd",
-    "description":"Bot管理者専用コマンド"
+    "description":"Bot管理者専用コマンド",
+    "options": [{
+      "type": 3,
+      "name": "action",
+      "description": "実行するアクション",
+      "required": true,
+      "choices": [
+        { "name": "Botの情報表示", "value": "BotInfo" },
+        { "name": "Botの現在参加しているサーバー情報", "value": "BotGuildInfo" },
+        { "name": "Botの退出", "value": "Botleave" }
+      ]
+    },
+    {
+      "type": 3,
+      "name": "target",
+      "description": "退出するサーバーID",
+      "required": false
+    }]
   },
   {
     "name": "random-timeout",
@@ -281,6 +298,14 @@
   {
     "name": "Make it a Quoteの作成(カラー)",
     "type": 3
+  },
+  {
+    "name": "ユーザーアイコンの取得",
+    "type": 2
+  },
+  {
+    "name": "ユーザー情報の取得",
+    "type": 2
   },
   {
     "name": "help",

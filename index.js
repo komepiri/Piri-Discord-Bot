@@ -27,6 +27,7 @@ const client = new Client({
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.DirectMessages,
+    GatewayIntentBits.GuildPresences
   ]
 });
 
@@ -597,19 +598,24 @@ client.on("interactionCreate", async (interaction) => {
   }
 
   if (interaction.commandName === 'admincmd') {
+    const action = interaction.options.getString('action');
+    const targetGuildID = interaction.options.getString('target');
     // ユーザーIDで管理者をチェック
     if (interaction.user.id !== process.env["ADMIN_USRID"]) {
         await interaction.reply('このコマンドを使用する権限がありません。');
         return;
     }
+    
     // Embedで参加しているサーバー数と、BotのID、名前、Ping値を送信
     const guildCount = client.guilds.cache.size;
     const botId = client.user.id;
     const botName = client.user.username;
     const ping = client.ws.ping;
+
+    if (action === 'BotInfo') {
     const embed = {
-        title: 'Bot Infomation List',
-        description: `Installed Server: ${guildCount}\n\n`,
+        title: 'Bot Information List',
+        description: `導入サーバー数: ${guildCount}\n\n`,
         color: 0x00ff00,
         fields: [
             {
@@ -637,8 +643,66 @@ client.on("interactionCreate", async (interaction) => {
               value: `${(fs.statSync(__filename).size / 1024).toFixed(2)} KB`
             }
         ]
+      }
+      await interaction.reply({ embeds: [embed] });
     }
+
+if (action === 'BotGuildInfo') {
+    const guildEntries = client.guilds.cache.map(guild => `• ${guild.name} \`(${guild.id})\``);
+    
+    // DiscordのEmbedフィールドのvalueは最大1024文字、全体で6000文字までなので制限する
+    const chunkSize = 1000;
+    let descriptionChunks = [''];
+    let currentIndex = 0;
+
+    for (const entry of guildEntries) {
+        if ((descriptionChunks[currentIndex] + '\n' + entry).length > chunkSize) {
+            currentIndex++;
+            descriptionChunks[currentIndex] = '';
+        }
+        descriptionChunks[currentIndex] += (descriptionChunks[currentIndex] ? '\n' : '') + entry;
+    }
+
+    const embed = {
+        title: '🧩 Bot Guild List',
+        description: `🤖 導入サーバー数: **${guildCount}**\n`,
+        color: 0x00bfff,
+        fields: descriptionChunks.map((chunk, index) => ({
+            name: `Guilds (${index + 1})`,
+            value: chunk
+        }))
+    };
+
     await interaction.reply({ embeds: [embed] });
+}
+
+
+    if (action === 'Botleave') {
+      if (!targetGuildID) {
+          await interaction.reply('ターゲットのサーバーIDを指定してください。');
+          return;
+      }
+      const targetGuild = client.guilds.cache.get(targetGuildID);
+      if (!targetGuild) {
+          await interaction.reply('指定されたサーバーが見つかりません。');
+          return;
+      }
+      try {
+          await targetGuild.leave();
+          const logEmbed = {
+              title: '✅Botサーバー退出成功',
+              description: `Botはサーバー ${targetGuild.name} (${targetGuild.id}) から退出しました。`,
+          }
+          await interaction.reply({ embeds: [logEmbed] });
+      } catch (error) {
+          console.error(`Error leaving guild: ${error}`);
+          const logEmbed = {
+              title: '❌Botサーバー退出失敗',
+              description: `Botはサーバー ${targetGuild.name} (${targetGuild.id}) から退出できませんでした。\nエラー: ${error.message}`,
+          }
+          await interaction.reply({ embeds: [logEmbed] });
+      }
+    }
   }
 
   if (interaction.commandName === 'encry') {
@@ -1091,7 +1155,7 @@ if (interaction.commandName === 'word2vec-similar') {
     await interaction.editReply({
       files: [{
         attachment: imageurl,
-        name: 'quote.png'
+        name: 'quote-mono.png'
     }]
   });
   }
@@ -1119,10 +1183,71 @@ if (interaction.commandName === 'word2vec-similar') {
     await interaction.editReply({
       files: [{
         attachment: imageurl,
-        name: 'quote.png'
+        name: 'quote-color.png'
     }]
   });
   }
+
+  if (interaction.isContextMenuCommand() && interaction.commandName === 'ユーザーアイコンの取得') {
+    const targetUser = interaction.options.getUser('user') || interaction.user;
+    const embed = {
+        title: `${targetUser.displayName}のアイコン`,
+        color: 0x00ff00,
+        image: { url: targetUser.displayAvatarURL({ format: 'png', size: 512 }) },
+}
+    
+    await interaction.reply({ embeds: [embed] });
+  }
+
+  if (interaction.isContextMenuCommand() && interaction.commandName === 'ユーザー情報の取得') {
+    const targetUser = interaction.options.getUser('user') || interaction.user; // interactionとしてのuser
+    const targetMember = await interaction.guild.members.fetch(targetUser.id); // guildとしてのuser
+
+    // ステータスを指定の表記と絵文字に変換する関数
+    const mapStatus = (status) => {
+        switch(status) {
+            case 'online':
+                return '🟢オンライン';
+            case 'idle':
+                return '🌙退席中';
+            case 'dnd':
+                return '🔴取り込み中';
+            default:
+                return status || '情報なし';
+        }
+    };
+
+    // 全体ステータス
+    const overallStatus = mapStatus(targetMember.presence?.status);
+
+    // 端末ごとのステータス
+    const clientStatus = targetMember.presence?.clientStatus;
+    let clientStatusText = '';
+    if (clientStatus) {
+        if (clientStatus.desktop) clientStatusText += `💻デスクトップ\n`;
+        if (clientStatus.mobile) clientStatusText += `📱モバイル\n`;
+        if (clientStatus.web) clientStatusText += `🌐ウェブ\n`;
+    } else {
+        clientStatusText = '情報なし';
+    }
+
+    const embed = {
+        title: `${targetMember.displayName}のユーザー情報`,
+        color: 0x00ff00,
+        fields: [
+            { name: 'ユーザー名', value: targetUser.username, inline: true },
+            { name: 'ニックネーム', value: targetMember.nickname || 'なし', inline: true },
+            { name: 'ユーザーID', value: targetUser.id, inline: true },
+            { name: 'ステータス情報', value: `${overallStatus}\n${clientStatusText}`, inline: false },
+            { name: 'アカウント作成日', value: `${targetUser.createdAt.toLocaleString()}\n (${Math.floor((Date.now() - targetUser.createdAt) / (1000 * 60 * 60 * 24))}日前)`, inline: true },
+            { name: 'サーバー参加日', value: `${targetMember.joinedAt.toLocaleString()}\n (${Math.floor((Date.now() - targetMember.joinedAt) / (1000 * 60 * 60 * 24))}日前)`, inline: true },
+        ],
+        thumbnail: { url: targetUser.displayAvatarURL({ format: 'png', size: 128 }) }
+    };
+    
+    await interaction.reply({ embeds: [embed] });
+  }
 })
+
 
 client.login(process.env.DISCORD_TOKEN);
