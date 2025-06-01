@@ -403,7 +403,7 @@ client.on("interactionCreate", async (interaction) => {
         };
         saveChannelSettings(channels);
         await interaction.reply(`AIが自動応答するチャンネルを ${targetChannel} に設定しました。\nAIに応答してほしくない場合には「;」をメッセージの先頭につけてください。\n言語モデル: ${model}`);
-        console.log(`channel set ${interaction.guild.id} / ${targetChannel.id} successfully.`);
+        console.log(`${new Date().toLocaleString()}:[AI Set Channel] channel set ${interaction.guild.id} / ${targetChannel.id} successfully.`);
     }
 
     if (interaction.commandName === 'ai_delchannel') {
@@ -413,7 +413,7 @@ client.on("interactionCreate", async (interaction) => {
           delete channels.channels[interaction.guild.id];
           saveChannelSettings(channels);
           await interaction.reply(`<#${targetChannel}>の自動応答設定を削除しました。\n今までの会話記録をリセットする場合は、ai_conv_resetコマンドを使用してください。`);
-          console.log(`delete channel ${interaction.guild.id} / ${targetChannel} successfully.`);
+          console.log(`${new Date().toLocaleString()}:[AI Del Channel] delete channel ${interaction.guild.id} / ${targetChannel} successfully.`);
       } else {
           await interaction.reply('このチャンネルには自動応答が有効化されていません。');
           console.log(`channel ${interaction.guild.id} not found.`);
@@ -427,10 +427,10 @@ client.on("interactionCreate", async (interaction) => {
             channels.channels[interaction.guild.id].model = model;
             saveChannelSettings(channels);
             await interaction.reply(`AIの使用する言語モデルを ${model} に変更しました。`);
-            console.log(`change model ${interaction.guild.id} / ${model} successfully.`);
+            console.log(`${new Date().toLocaleString()}:[AI Model Change] ${interaction.guild.id} / ${model} successfully.`);
         } else {
             await interaction.reply('このチャンネルには自動応答が有効化されていません。');
-            console.log(`channel ${interaction.guild.id} not found.`);
+            console.log(`${new Date().toLocaleString()}:[AI Model Change] channel ${interaction.guild.id} not found.`);
         }
     }
 
@@ -440,10 +440,10 @@ client.on("interactionCreate", async (interaction) => {
             if (fs.existsSync(channelFilePath)) {
                 fs.unlinkSync(channelFilePath);
                 await interaction.reply(`<#${interaction.channel.id}>の会話記録をリセットしました。`);
-                console.log(`reset conversation ${interaction.guild.id} / ${interaction.channel.id} successfully.`);
+                console.log(`${new Date().toLocaleString()}:[AI conv Reset] reset conversation ${interaction.guild.id} / ${interaction.channel.id} successfully.`);
             } else {
                 await interaction.reply('会話記録が見つかりません。');
-                console.log(`conversation ${interaction.guild.id} / ${interaction.channel.id} not found.`);
+                console.log(`${new Date().toLocaleString()}:[AI conv Reset] conversation ${interaction.guild.id} / ${interaction.channel.id} not found.`);
             }
         }
 
@@ -504,7 +504,6 @@ client.on("interactionCreate", async (interaction) => {
         fs.unlinkSync(messagesFilePath);
     } else {
         await interaction.reply('このチャンネルには自動応答が有効化されていません。');
-        console.log(`channel ${interaction.guild.id} not found.`);
     }
   }
       
@@ -1076,7 +1075,7 @@ if (interaction.commandName === 'word2vec-similar') {
         }
         
         const imagePath = res.file.path.toString();
-        console.log('画像生成完了:', imagePath);
+        console.log(Date.now.toLocaleString + ':[TweetSnap]:Generated image path:', imagePath);
         await interaction.editReply({
           files: [{ 
             attachment: fs.createReadStream(imagePath), 
@@ -1093,7 +1092,7 @@ if (interaction.commandName === 'word2vec-similar') {
   if (interaction.commandName === 'generate-trip') {
     const tripkey = interaction.options.getString('tripkey');
     if (!tripkey) {
-        await interaction.reply('トリップキーを指定してください。');
+        await interaction.reply({ content:'トリップキーを指定してください。', flags: MessageFlags.Ephemeral });
         return;
     }
     const trip = generateTrip(tripkey);
@@ -1131,6 +1130,44 @@ if (interaction.commandName === 'word2vec-similar') {
     }
   }
 
+  if (interaction.commandName === 'embedbuilder') {
+    const title = interaction.options.getString('title') || 'Embed Title';
+    const description = interaction.options.getString('description') || 'Embed Description';
+    const color = interaction.options.getString('color') || '#00ff00';
+    const fields = interaction.options.getString('fields') || ''; // name1:value1,name2:value2,...
+    let fieldArray = [];
+    if (fields !== '') {
+        const splittedFields = fields.split(',');
+        for (const field of splittedFields) {
+            if (!field.includes(':')) {
+                await interaction.reply({ content: 'fieldsの形式が正しくありません。例: "name1:value1,name2:value2"', flags: MessageFlags.Ephemeral});
+                return;
+            }
+        }
+        fieldArray = splittedFields.map(field => {
+            const [name, value] = field.split(':').map(part => part.trim());
+            console.log(`Field name: ${name}, value: ${value}`);
+            return { name, value, inline: true };
+        });
+    }
+    const Imageattachment = interaction.options.getAttachment('image');
+    const ImageattachmentURL = Imageattachment ? Imageattachment.url : null;
+    
+    const embed = {
+        title: title,
+        description: description,
+        color: parseInt(color.replace('#', '0x'), 16),
+        fields: fieldArray,
+        image: ImageattachmentURL ? { url: ImageattachmentURL } : undefined,
+        footer: {
+            text: 'Embed Builder by PiriBot',
+            icon_url: client.user.displayAvatarURL()
+        }
+    };
+    
+    await interaction.reply({ embeds: [embed] });
+  }
+
   // Make it Quoteの画像を生成するコンテキストメニューコマンド
   if (interaction.isContextMenuCommand() && interaction.commandName === 'Make it a Quoteの作成(モノクロ)') {
     const targetMessage = await interaction.channel.messages.fetch(interaction.targetId);
@@ -1140,7 +1177,7 @@ if (interaction.commandName === 'word2vec-similar') {
     const targetUserIconURL = targetUser.displayAvatarURL({ format: 'png', size: 128 });
 
     if (!targetMessage) {
-        await interaction.reply({ content: '指定されたメッセージが見つかりません。', ephemeral: true });
+        await interaction.reply({ content: '指定されたメッセージが見つかりません。', flags: MessageFlags.Ephemeral });
         return;
     }
     const imageurl = await generateMiqImages(
@@ -1168,7 +1205,7 @@ if (interaction.commandName === 'word2vec-similar') {
     const targetUserIconURL = targetUser.displayAvatarURL({ format: 'png', size: 128 });
 
     if (!targetMessage) {
-        await interaction.reply({ content: '指定されたメッセージが見つかりません。', ephemeral: true });
+        await interaction.reply({ content: '指定されたメッセージが見つかりません。', flags: MessageFlags.Ephemeral });
         return;
     }
     const imageurl = await generateMiqImages(
@@ -1247,6 +1284,7 @@ if (interaction.commandName === 'word2vec-similar') {
     
     await interaction.reply({ embeds: [embed] });
   }
+
 })
 
 
