@@ -178,28 +178,6 @@
     }]
   },
   {
-    "name": "word2vec-similar",
-    "description": "指定した単語に類似した単語を取得します。",
-    "options": [{
-      "type": 3,
-      "name": "word",
-      "description": "類似単語を取得する単語",
-      "required": true
-    }]
-  },
-  {
-    "name": "word2vec-calc",
-    "description": "指定した単語の足し算引き算を行います。",
-    "options": [
-      {
-        "type": 3,
-        "name": "expression",
-        "description": "単語の計算式(例: ラジオ - 音声 + 文字)",
-        "required": true
-      }
-    ]
-  },
-  {
     "name": "snap-tweet",
     "description": "指定したツイートを画像として取得し、送信します。",
     "options": [
