@@ -4,6 +4,7 @@
     "@azure/core-auth": "latest",
     "@azure/core-sse": "latest",
     "child-process": "^1.0.2",
+    "cors": "^2.8.5",
     "deepl-node": "^1.16.0",
     "discord.js": "^14.17.3",
     "dotenv": "^16.4.7",

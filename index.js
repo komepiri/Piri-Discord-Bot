@@ -14,8 +14,10 @@ import { createRequire } from 'module';
 const require = createRequire(import.meta.url); // CommonJSのrequireを使用するためにつくったやつ package.jsonでESMにしたせいでこうなってる
 const crypt = require('unix-crypt-td-js');
 import puppeteer from 'puppeteer';
+import cors from 'cors';
 
 const app = express();
+app.use(cors());
 const port = 3000
 
 dotenv.config();
