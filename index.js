@@ -21,6 +21,7 @@ app.use(cors());
 const port = 3000
 
 dotenv.config();
+const maintainaceMode = false
 
 const client = new Client({
   intents: [
@@ -64,7 +65,7 @@ const endpoint = "https://models.github.ai/inference";
 
 const DeepLAuthKey = process.env["DEEPL_TOKEN"]
 const translator = new deepl.Translator(DeepLAuthKey);
-
+ 
 // デフォルトステータスメッセージ
 let StatusMessages = process.env["DEFAULT_STATUS_MESSAGE"];
 
@@ -319,6 +320,10 @@ client.on('messageCreate', async (message) => {
 // スラッシュコマンドの処理
 client.on("interactionCreate", async (interaction) => {
     if (!interaction.isCommand()) return;
+    if (maintainaceMode === true && interaction.user.id !== process.env["ADMIN_USRID"]) {
+        interaction.reply('メンテナンス中のため、現在コマンドを使用できません。');    
+        return;
+    }
 
       if (interaction.commandName === 'help') {
     
@@ -636,8 +641,8 @@ client.on("interactionCreate", async (interaction) => {
                 value: `http://127.0.0.1:3000/status`
             },
             {
-                name: 'Word2Vec API',
-                value: `http://127.0.0.1:5000`
+                name: 'Bot Website',
+                value: `https://komepiri.github.io/piribot/`
             },
             {
               name: 'index.js File Size',
@@ -920,6 +925,7 @@ if (interaction.commandName === 'end-poll') {
 async function endPoll(interaction, pollId) {
   const poll = activePolls.get(pollId);
   if (!poll) return;
+  if (poll.ended === true) return;
 
   poll.ended = true;
   const { options, votes, message } = poll;
