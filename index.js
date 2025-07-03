@@ -351,7 +351,8 @@ client.on("interactionCreate", async (interaction) => {
             { name: 'dcry', description: '暗号化されたファイルを復号化して内容を表示します。' },
             { name: 'screenshot', description: '指定したURLのスクリーンショットを取得します。' },
             { name: 'snap-tweet', description: '指定したツイートのスクリーンショットを生成します。' },
-            { name: 'generate-trip', description: '電子掲示板などで使用されるトリップを生成します。' }
+            { name: 'generate-trip', description: '電子掲示板などで使用されるトリップを生成します。' },
+            { name: 'role-panel', description: 'パネルを作成します。' },
         ],
         'その他': [
             { name: 'word2vec-similar', description: '指定した単語の類似単語を取得します。使えない場合が多いです。' },
